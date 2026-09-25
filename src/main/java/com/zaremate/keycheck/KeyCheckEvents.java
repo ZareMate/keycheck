@@ -100,16 +100,38 @@ public final class KeyCheckEvents {
         );
         String[] lines = packet.getLines();
 
-        String ctrlResponse = lines.length > 3 && lines[3] != null
-                ? lines[3].trim()
-                : "";
+        String[] rawLines = Arrays.copyOf(lines, 4);
+        for (int i = 0; i < rawLines.length; i++)
+            if (rawLines[i] == null) rawLines[i] = "";
+
+        String ctrlResponse = rawLines[3].trim();
         boolean exploitPreventer = ctrlResponse.equalsIgnoreCase(CTRL_KEYBIND);
 
-        for (int i = 0; i < batch.size() && i < lines.length; i++) {
-            String response = lines[i] == null ? "" : lines[i].trim();
+        LOGGER.info(
+                "[KeyCheck] Batch {} from {} L0='{}' L1='{}' L2='{}' CTRL='{}'{}",
+                session.index / LINES_PER_BATCH,
+                player.getGameProfile().getName(),
+                rawLines[0].trim(),
+                rawLines[1].trim(),
+                rawLines[2].trim(),
+                ctrlResponse,
+                exploitPreventer ? " [ExploitPreventer detected]" : ""
+        );
+
+        for (int i = 0; i < batch.size(); i++) {
+            String response = rawLines[i].trim();
             KeyProbe probe = batch.get(i);
 
             ProbeResult result = evaluate(probe, response, exploitPreventer);
+
+            LOGGER.info(
+                    "[KeyCheck] {} -> {} (mode={}, response='{}')",
+                    probe.key(),
+                    result,
+                    probe.mode(),
+                    response
+            );
+
             if (result == ProbeResult.DETECTED)
                 session.detected.add(probe.key());
             else if (result == ProbeResult.PROTECTED)
