@@ -168,7 +168,7 @@ public final class KeyCheckEvents {
             sendBatch(session);
     }
 
-        private static int startCheck(ServerPlayer target, net.minecraft.commands.CommandSourceStack commandSource) {
+    private static int startCheck(ServerPlayer target, net.minecraft.commands.CommandSourceStack commandSource) {
         if (SESSIONS.containsKey(target.getUUID())) {
             if (commandSource != null) commandSource.sendFailure(Component.literal("KeyCheck is already checking " + target.getGameProfile().getName() + "."));
             LOGGER.info("[KeyCheck] {} is already being checked.", target.getGameProfile().getName());
@@ -315,28 +315,26 @@ public final class KeyCheckEvents {
             } else if (!session.protectedKeys.isEmpty()) {
                 String list = String.join("\n", session.protectedKeys);
                 LOGGER.info("[KeyCheck] {}: keybind probe protected for:\n{}", name, list);
+                String details = "Protected/probe-blocked keybinds:\n" + list;
                 DiscordWebhook.send(
                         name,
                         session.player.getUUID().toString(),
                         "INCONCLUSIVE",
-                        "Protected/probe-blocked keybinds:\n" + list
+                        details
                 );
+                sendCommandResult(session, "INCONCLUSIVE", details);
             } else {
                 if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
                     LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected.", name);
+                String details = "No configured blacklisted keybinds were resolved.";
+                sendCommandResult(session, "CLEAN", details);
+                // Automatic clean join checks intentionally do not generate Discord messages.
                 if (session.commandSource != null) {
-                    sendCommandResult(session, "CLEAN", "No configured blacklisted keybinds were resolved.");
-                } else {
-                    // Automatic clean checks intentionally do not generate Discord messages.
-                }
-                if (session.commandSource == null) {
-                    // No webhook for a clean automatic join check.
-                } else {
                     DiscordWebhook.send(
                             name,
                             session.player.getUUID().toString(),
                             "CLEAN",
-                            "No configured blacklisted keybinds were resolved."
+                            details
                     );
                 }
             }
