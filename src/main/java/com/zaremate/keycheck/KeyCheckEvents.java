@@ -33,6 +33,7 @@ public final class KeyCheckEvents {
     private static final Map<UUID, Integer> PENDING_JOIN_CHECKS = new ConcurrentHashMap<>();
     private static final Map<UUID, ClientboundGameEventPacket> HELD_LOADING_PACKETS = new ConcurrentHashMap<>();
     private static final Set<UUID> RELEASING_LOADING_PACKETS = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> JOIN_LOADING_PENDING = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> FIRST_JOIN_CHECKED = ConcurrentHashMap.newKeySet();
 
     private KeyCheckEvents() {}
@@ -62,8 +63,9 @@ public final class KeyCheckEvents {
             return;
         }
         UUID uuid = player.getUUID();
-        if (HELD_LOADING_PACKETS.containsKey(uuid)) return;
+        if (HELD_LOADING_PACKETS.containsKey(uuid) || JOIN_LOADING_PENDING.contains(uuid)) return;
         if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
+        JOIN_LOADING_PENDING.add(uuid);
         PENDING_JOIN_CHECKS.put(uuid,
                 player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get());
     }
@@ -74,6 +76,7 @@ public final class KeyCheckEvents {
             PENDING_JOIN_CHECKS.remove(player.getUUID());
             HELD_LOADING_PACKETS.remove(player.getUUID());
             RELEASING_LOADING_PACKETS.remove(player.getUUID());
+            JOIN_LOADING_PENDING.remove(player.getUUID());
             CheckSession session = SESSIONS.remove(player.getUUID());
             if (session != null) finish(session, "logout");
         }
@@ -131,23 +134,13 @@ public final class KeyCheckEvents {
         if (player == null)
             return false;
 
-        if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get()))
-            return false;
-
         UUID uuid = player.getUUID();
-        if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && FIRST_JOIN_CHECKED.contains(uuid))
+        if (!JOIN_LOADING_PENDING.remove(uuid))
             return false;
 
-        FIRST_JOIN_CHECKED.add(uuid);
         ClientboundGameEventPacket previous = HELD_LOADING_PACKETS.putIfAbsent(uuid, packet);
         if (previous != null)
             return true;
-
-        PENDING_JOIN_CHECKS.put(
-                uuid,
-                player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get()
-        );
-
         LOGGER.info(
                 "[KeyCheck] Holding {} on the client loading screen until the join check completes.",
                 player.getGameProfile().getName()
@@ -363,6 +356,7 @@ public final class KeyCheckEvents {
 
         session.finished = true;
         SESSIONS.remove(session.player.getUUID());
+        JOIN_LOADING_PENDING.remove(session.player.getUUID());
         restoreClientView(session);
         releaseLoadingScreen(session.player);
 
