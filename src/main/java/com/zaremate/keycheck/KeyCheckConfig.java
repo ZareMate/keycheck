@@ -1,6 +1,5 @@
 package com.zaremate.keycheck;
 
-import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
@@ -10,13 +9,13 @@ public final class KeyCheckConfig {
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLISTED_KEYS =
             BUILDER.comment(
-                    "Probe entries in the format TYPE|TRANSLATION_KEY.",
+                    "Probe entries in the format TYPE:TRANSLATION_KEY.",
                     "Types: KEYBIND, TRANSLATE, METEOR.",
-                    "Example: METEOR|key.meteor-client.open-gui.",
-                    "A bare key is accepted for backwards compatibility and is treated as KEYBIND."
+                    "Example: METEOR:key.meteor-client.open-gui",
+                    "A bare key is accepted for backwards compatibility."
             ).defineListAllowEmpty(
                     "blacklisted_keys",
-                    List.of("METEOR|key.meteor-client.open-gui"),
+                    List.of("METEOR:key.meteor-client.open-gui"),
                     () -> "",
                     value -> value instanceof String s && !s.isBlank()
             );
@@ -53,60 +52,23 @@ public final class KeyCheckConfig {
 
     private KeyCheckConfig() {}
 
-    public static List<CheckProbe> probes() {
+    public static List<KeyProbe> blacklistedProbes() {
         return BLACKLISTED_KEYS.get().stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .map(KeyCheckConfig::parseProbe)
+                .map(KeyProbe::parse)
                 .toList();
     }
 
-    private static CheckProbe parseProbe(String value) {
-        int separator = value.indexOf('|');
-        if (separator < 0)
-            return new CheckProbe(CheckType.KEYBIND, value);
-
-        String type = value.substring(0, separator).trim();
-        String key = value.substring(separator + 1).trim();
-
-        if (key.isEmpty())
-            return new CheckProbe(CheckType.KEYBIND, value);
-
-        return new CheckProbe(CheckType.parse(type), key);
+    public static List<KeyProbe> probes() {
+        return blacklistedProbes();
     }
 
     public static List<String> blacklistedKeys() {
-        return probes().stream().map(CheckProbe::key).toList();
+        return blacklistedProbes().stream().map(KeyProbe::key).toList();
     }
 
     public static String webhookUrl() {
         return WEBHOOK_URL.get().trim();
-    }
-
-    public record CheckProbe(CheckType type, String key) {
-        public Component component() {
-            return switch (type) {
-                case KEYBIND -> Component.keybind(key);
-                case TRANSLATE -> Component.translatableWithFallback(key, "⟦KC_" + safeId() + "⟧");
-                case METEOR -> Component.translatableWithFallback(key, key);
-            };
-        }
-
-        public String fallback() {
-            return switch (type) {
-                case KEYBIND -> key;
-                case TRANSLATE -> "⟦KC_" + safeId() + "⟧";
-                case METEOR -> key;
-            };
-        }
-
-        private String safeId() {
-            return Integer.toUnsignedString(key.hashCode(), 16);
-        }
-
-        @Override
-        public String toString() {
-            return type + "|" + key;
-        }
     }
 }
