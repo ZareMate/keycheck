@@ -63,9 +63,8 @@ public final class KeyCheckEvents {
             return;
         }
         UUID uuid = player.getUUID();
-        if (HELD_LOADING_PACKETS.containsKey(uuid) || JOIN_LOADING_PENDING.contains(uuid)) return;
+        if (HELD_LOADING_PACKETS.containsKey(uuid)) return;
         if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
-        JOIN_LOADING_PENDING.add(uuid);
         PENDING_JOIN_CHECKS.put(uuid,
                 player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get());
     }
@@ -116,6 +115,13 @@ public final class KeyCheckEvents {
             if (session.awaiting && tick >= session.timeoutTick)
                 finish(session, "timeout");
         }
+    }
+
+    /** Called before the initial PlayerList join packet sequence starts. */
+    public static void markInitialJoin(ServerPlayer player) {
+        if (!KeyCheckConfig.AUTO_CHECK_ON_JOIN.get()) return;
+        if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get())) return;
+        JOIN_LOADING_PENDING.add(player.getUUID());
     }
 
     /**
