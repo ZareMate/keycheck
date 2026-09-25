@@ -89,3 +89,10 @@ gradle build
 ```
 
 Detection is heuristic because a modified client can suppress or spoof client-side resolution.
+
+
+## Client overlay
+
+The mod includes an optional client-side verification overlay. When a check starts, the client shows a small KeyCheck panel over the Minecraft loading overlay when that screen is still visible, and continues showing it over the normal HUD until the check finishes.
+
+The detection logic remains server-side. The KeyCheck mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
