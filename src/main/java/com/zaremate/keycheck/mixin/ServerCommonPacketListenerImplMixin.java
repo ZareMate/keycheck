@@ -22,6 +22,8 @@ public abstract class ServerCommonPacketListenerImplMixin {
             return;
         if (!(packet instanceof ClientboundGameEventPacket gameEvent))
             return;
+        if (KeyCheckEvents.isReleasingLoadingScreen(connection))
+            return;
         if (KeyCheckEvents.holdLoadingScreen(connection, gameEvent))
             ci.cancel();
     }
