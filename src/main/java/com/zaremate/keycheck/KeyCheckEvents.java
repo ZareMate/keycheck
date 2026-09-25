@@ -94,9 +94,9 @@ public final class KeyCheckEvents {
 
         session.awaiting = false;
 
-        List<String> batch = session.keys.subList(
+        List<KeyProbe> batch = session.probes.subList(
                 session.index,
-                Math.min(session.index + LINES_PER_BATCH, session.keys.size())
+                Math.min(session.index + LINES_PER_BATCH, session.probes.size())
         );
         String[] lines = packet.getLines();
 
@@ -107,33 +107,19 @@ public final class KeyCheckEvents {
 
         for (int i = 0; i < batch.size() && i < lines.length; i++) {
             String response = lines[i] == null ? "" : lines[i].trim();
-            String key = batch.get(i);
+            KeyProbe probe = batch.get(i);
 
-            // Match CheckHacks KEYBIND behavior:
-            // empty response -> NOT_DETECTED
-            // literal translation key -> NOT_DETECTED
-            // key + one trailing letter -> NOT_DETECTED
-            // any other resolved value -> DETECTED.
-            if (response.isEmpty()) continue;
-
-            if (response.length() == key.length() + 1
-                    && response.regionMatches(true, 0, key, 0, key.length())
-                    && Character.isLetter(response.charAt(key.length()))) {
-                continue;
-            }
-
-            if (response.equalsIgnoreCase(key)) {
-                if (exploitPreventer) session.protectedKeys.add(key);
-                continue;
-            }
-
-            session.detected.add(key);
+            ProbeResult result = evaluate(probe, response, exploitPreventer);
+            if (result == ProbeResult.DETECTED)
+                session.detected.add(probe.key());
+            else if (result == ProbeResult.PROTECTED)
+                session.protectedKeys.add(probe.key());
         }
 
         restoreClientView(session);
         session.index += batch.size();
 
-        if (session.index >= session.keys.size())
+        if (session.index >= session.probes.size())
             finish(session, "complete");
         else
             sendBatch(session);
@@ -145,17 +131,17 @@ public final class KeyCheckEvents {
             return 0;
         }
 
-        List<String> keys = KeyCheckConfig.blacklistedKeys();
-        if (keys.isEmpty()) {
+        List<KeyProbe> probes = KeyCheckConfig.blacklistedProbes();
+        if (probes.isEmpty()) {
             LOGGER.warn("[KeyCheck] No blacklisted keys are configured.");
             return 0;
         }
 
-        CheckSession session = new CheckSession(target, initiator, keys);
+        CheckSession session = new CheckSession(target, initiator, probes);
         SESSIONS.put(target.getUUID(), session);
 
-        LOGGER.info("[KeyCheck] Checking {} for {} blacklisted keybind(s).",
-                target.getGameProfile().getName(), keys.size());
+        LOGGER.info("[KeyCheck] Checking {} for {} configured probe(s).",
+                target.getGameProfile().getName(), probes.size());
 
         sendBatch(session);
         return 1;
@@ -184,15 +170,15 @@ public final class KeyCheckEvents {
 
         SignText text = new SignText();
 
-        List<String> batch = session.keys.subList(
+        List<KeyProbe> batch = session.probes.subList(
                 session.index,
-                Math.min(session.index + LINES_PER_BATCH, session.keys.size())
+                Math.min(session.index + LINES_PER_BATCH, session.probes.size())
         );
 
         for (int i = 0; i < LINES_PER_BATCH; i++) {
             text = text.setMessage(
                     i,
-                    i < batch.size() ? Component.keybind(batch.get(i)) : Component.empty()
+                    i < batch.size() ? batch.get(i).component() : Component.empty()
             );
         }
 
@@ -215,6 +201,44 @@ public final class KeyCheckEvents {
         // CheckHacks waits one tick after sending the sign data, then opens the
         // editor and immediately hides the sign from the checking client.
         session.openTick = player.server.getTickCount() + 1;
+    }
+
+    private enum ProbeResult { NOT_DETECTED, DETECTED, PROTECTED }
+
+    private static ProbeResult evaluate(KeyProbe probe, String response, boolean exploitPreventer) {
+        if (response.isEmpty())
+            return ProbeResult.NOT_DETECTED;
+
+        String key = probe.key();
+        if (response.length() == key.length() + 1
+                && response.regionMatches(true, 0, key, 0, key.length())
+                && Character.isLetter(response.charAt(key.length()))) {
+            return ProbeResult.NOT_DETECTED;
+        }
+
+        return switch (probe.mode()) {
+            case METEOR -> {
+                if (response.equalsIgnoreCase(key))
+                    yield ProbeResult.DETECTED;
+                if (response.regionMatches(true, 0, probe.fallback(), 0, probe.fallback().length()))
+                    yield ProbeResult.NOT_DETECTED;
+                yield ProbeResult.DETECTED;
+            }
+            case TRANSLATE -> {
+                if (response.regionMatches(true, 0, probe.fallback(), 0, probe.fallback().length()))
+                    yield ProbeResult.NOT_DETECTED;
+                if (response.equalsIgnoreCase(key))
+                    yield ProbeResult.PROTECTED;
+                yield ProbeResult.DETECTED;
+            }
+            case KEYBIND -> {
+                if (exploitPreventer && response.equalsIgnoreCase(key))
+                    yield ProbeResult.PROTECTED;
+                if (response.equalsIgnoreCase(key))
+                    yield ProbeResult.NOT_DETECTED;
+                yield ProbeResult.DETECTED;
+            }
+        };
     }
 
     private static void finish(CheckSession session, String reason) {
@@ -298,7 +322,7 @@ public final class KeyCheckEvents {
     static final class CheckSession {
         final ServerPlayer player;
         final ServerPlayer initiator;
-        final List<String> keys;
+        final List<KeyProbe> probes;
         final Set<String> detected = new LinkedHashSet<>();
         final Set<String> protectedKeys = new LinkedHashSet<>();
 
