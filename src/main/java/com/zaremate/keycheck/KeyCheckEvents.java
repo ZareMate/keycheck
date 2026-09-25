@@ -29,6 +29,8 @@ public final class KeyCheckEvents {
     private static final int LINES_PER_BATCH = 3;
     private static final String CTRL_KEYBIND = "key.forward";
     private static final Map<UUID, CheckSession> SESSIONS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Integer> PENDING_JOIN_CHECKS = new ConcurrentHashMap<>();
+    private static final Set<UUID> FIRST_JOIN_CHECKED = ConcurrentHashMap.newKeySet();
 
     private KeyCheckEvents() {}
 
@@ -50,8 +52,19 @@ public final class KeyCheckEvents {
     }
 
     @SubscribeEvent
+    public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!KeyCheckConfig.AUTO_CHECK_ON_JOIN.get()) return;
+        UUID uuid = player.getUUID();
+        if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
+        PENDING_JOIN_CHECKS.put(uuid,
+                player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get());
+    }
+
+    @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            PENDING_JOIN_CHECKS.remove(player.getUUID());
             CheckSession session = SESSIONS.remove(player.getUUID());
             if (session != null) finish(session, "logout");
         }
@@ -60,6 +73,16 @@ public final class KeyCheckEvents {
     @SubscribeEvent
     public static void onTick(ServerTickEvent.Post event) {
         int tick = event.getServer().getTickCount();
+
+        for (var entry : new ArrayList<>(PENDING_JOIN_CHECKS.entrySet())) {
+            if (tick < entry.getValue()) continue;
+            UUID uuid = entry.getKey();
+            PENDING_JOIN_CHECKS.remove(uuid);
+            ServerPlayer player = event.getServer().getPlayerList().getPlayer(uuid);
+            if (player != null && player.isAlive() && !SESSIONS.containsKey(uuid))
+                startCheck(player, null);
+        }
+
         for (CheckSession session : new ArrayList<>(SESSIONS.values())) {
             if (session.openTick > 0 && tick >= session.openTick) {
                 session.openTick = 0;
