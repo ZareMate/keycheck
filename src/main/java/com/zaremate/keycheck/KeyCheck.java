@@ -15,6 +15,6 @@ public final class KeyCheck {
     public KeyCheck(ModContainer container) {
         container.registerConfig(ModConfig.Type.COMMON, KeyCheckConfig.SPEC);
         NeoForge.EVENT_BUS.register(KeyCheckEvents.class);
-        LOGGER.info("KeyCheck loaded. Blacklisted keys: {}", KeyCheckConfig.blacklistedKeys());
+        LOGGER.info("KeyCheck loaded.");
     }
 }
