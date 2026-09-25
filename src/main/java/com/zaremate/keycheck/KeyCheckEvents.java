@@ -136,6 +136,12 @@ public final class KeyCheckEvents {
 
         BlockState fakeSignState = Blocks.OAK_SIGN.defaultBlockState();
         SignBlockEntity sign = new SignBlockEntity(pos, fakeSignState);
+
+        // Packet serialization in 1.21.1 needs a non-null Level for registry access.
+        // This only attaches the detached object to the existing Level; it does not
+        // add the block entity to the world or cause a world update.
+        sign.setLevel(player.serverLevel());
+
         SignText text = new SignText();
 
         List<String> batch = session.keys.subList(
