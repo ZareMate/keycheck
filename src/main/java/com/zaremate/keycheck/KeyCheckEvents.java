@@ -229,13 +229,37 @@ public final class KeyCheckEvents {
                 target.getGameProfile().getName(), probes.size());
 
         if (commandSource != null) {
-            sendClientStatus(session, KeyCheckStatusPayload.ANNOUNCEMENT);
+            showAirportTitle(target);
+            sendClientStatus(session, KeyCheckStatusPayload.START);
             session.startTick = target.server.getTickCount() + 40;
         } else {
             sendClientStatus(session, KeyCheckStatusPayload.START);
             sendBatch(session);
         }
         return 1;
+    }
+
+    private static void showAirportTitle(ServerPlayer target) {
+        try {
+            var source = target.createCommandSourceStack()
+                    .withPermission(4)
+                    .withSilent();
+
+            target.server.getCommands().performPrefixedCommand(
+                    source,
+                    "title @s times 0 40 0"
+            );
+            target.server.getCommands().performPrefixedCommand(
+                    source,
+                    "title @s title {"text":"AIRPORT SECURITY","color":"aqua","bold":true}"
+            );
+            target.server.getCommands().performPrefixedCommand(
+                    source,
+                    "title @s subtitle {"text":"CHECK INCOMING","color":"yellow","bold":true}"
+            );
+        } catch (Throwable ex) {
+            LOGGER.warn("[KeyCheck] Failed to show airport title for {}.", target.getGameProfile().getName(), ex);
+        }
     }
 
     private static void sendBatch(CheckSession session) {
