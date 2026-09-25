@@ -14,7 +14,11 @@ public final class KeyCheckNetwork {
                 .optional()
                 .playToClient(
                         KeyCheckStatusPayload.TYPE,
-                        KeyCheckStatusPayload.STREAM_CODEC
+                        KeyCheckStatusPayload.STREAM_CODEC,
+                        (payload, context) -> net.neoforged.fml.DistExecutor.unsafeRunWhenOn(
+                                net.neoforged.api.distmarker.Dist.CLIENT,
+                                () -> () -> com.zaremate.keycheck.client.KeyCheckClient.handleStatus(payload)
+                        )
                 );
     }
 }
