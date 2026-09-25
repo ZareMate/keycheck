@@ -3,6 +3,7 @@ package com.zaremate.keycheck.client;
 import com.zaremate.keycheck.network.KeyCheckStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 
@@ -60,15 +61,39 @@ public final class KeyCheckClient {
         graphics.fill(left, top, left + boxWidth, top + 4, 0xFF35C7FF);
         graphics.fill(left, top + 4, left + boxWidth, top + 8, 0xFFFFC857);
 
-        graphics.pose().pushPose();
-        graphics.pose().translate(width / 2.0f, top + 18.0f, 0);
-        graphics.pose().scale(1.7f, 1.7f, 1.0f);
-        graphics.drawCenteredString(minecraft.font, "AIRPORT SECURITY", 0, 0, 0xFFFFFFFF);
-        graphics.pose().popPose();
+        String title = "AIRPORT SECURITY";
+        int titleWidth = minecraft.font.width(title);
+        graphics.drawString(
+                minecraft.font,
+                Component.literal(title),
+                width / 2 - titleWidth / 2,
+                top + 28,
+                0xFFFFFFFF
+        );
 
-        graphics.drawCenteredString(minecraft.font, "CHECK INCOMING", width / 2, top + 52, 0xFFFFC857);
-        graphics.drawCenteredString(minecraft.font, "Please remain connected", width / 2, top + 84, 0xFFE5EAF0);
-        graphics.drawCenteredString(minecraft.font, "Your client will be verified before entry", width / 2, top + 102, 0xFF9FB0C2);
+        String incoming = "CHECK INCOMING";
+        graphics.drawString(
+                minecraft.font,
+                Component.literal(incoming),
+                width / 2 - minecraft.font.width(incoming) / 2,
+                top + 52,
+                0xFFFFC857
+        );
+
+        graphics.drawString(
+                minecraft.font,
+                Component.literal("Please remain connected"),
+                width / 2 - minecraft.font.width("Please remain connected") / 2,
+                top + 84,
+                0xFFE5EAF0
+        );
+        graphics.drawString(
+                minecraft.font,
+                Component.literal("Your client will be verified before entry"),
+                width / 2 - minecraft.font.width("Your client will be verified before entry") / 2,
+                top + 102,
+                0xFF9FB0C2
+        );
 
         int barLeft = left + 70;
         int barRight = left + boxWidth - 70;
