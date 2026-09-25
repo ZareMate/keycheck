@@ -32,6 +32,7 @@ public final class KeyCheckEvents {
     private static final Map<UUID, CheckSession> SESSIONS = new ConcurrentHashMap<>();
     private static final Map<UUID, Integer> PENDING_JOIN_CHECKS = new ConcurrentHashMap<>();
     private static final Map<UUID, ClientboundGameEventPacket> HELD_LOADING_PACKETS = new ConcurrentHashMap<>();
+    private static final Set<UUID> RELEASING_LOADING_PACKETS = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> FIRST_JOIN_CHECKED = ConcurrentHashMap.newKeySet();
 
     private KeyCheckEvents() {}
@@ -72,6 +73,7 @@ public final class KeyCheckEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             PENDING_JOIN_CHECKS.remove(player.getUUID());
             HELD_LOADING_PACKETS.remove(player.getUUID());
+            RELEASING_LOADING_PACKETS.remove(player.getUUID());
             CheckSession session = SESSIONS.remove(player.getUUID());
             if (session != null) finish(session, "logout");
         }
@@ -153,11 +155,16 @@ public final class KeyCheckEvents {
         return true;
     }
 
+    public static boolean isReleasingLoadingScreen(ServerPlayer player) {
+        return RELEASING_LOADING_PACKETS.remove(player.getUUID());
+    }
+
     private static void releaseLoadingScreen(ServerPlayer player) {
         ClientboundGameEventPacket packet = HELD_LOADING_PACKETS.remove(player.getUUID());
         if (packet == null)
             return;
 
+        RELEASING_LOADING_PACKETS.add(player.getUUID());
         player.connection.send(packet);
         LOGGER.info(
                 "[KeyCheck] Released {} from the client loading screen; KeyCheck is complete.",
