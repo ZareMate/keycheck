@@ -251,11 +251,11 @@ public final class KeyCheckEvents {
             );
             target.server.getCommands().performPrefixedCommand(
                     source,
-                    "title @s title {"text":"AIRPORT SECURITY","color":"aqua","bold":true}"
+                    "title @s title {\"text\":\"AIRPORT SECURITY\",\"color\":\"aqua\",\"bold\":true}"
             );
             target.server.getCommands().performPrefixedCommand(
                     source,
-                    "title @s subtitle {"text":"CHECK INCOMING","color":"yellow","bold":true}"
+                    "title @s subtitle {\"text\":\"CHECK INCOMING\",\"color\":\"yellow\",\"bold\":true}"
             );
         } catch (Throwable ex) {
             LOGGER.warn("[KeyCheck] Failed to show airport title for {}.", target.getGameProfile().getName(), ex);
