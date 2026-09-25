@@ -4,7 +4,8 @@
   "package": "com.zaremate.keycheck.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerGamePacketListenerImplMixin"
+    "ServerGamePacketListenerImplMixin",
+    "SignBlockEntityAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
