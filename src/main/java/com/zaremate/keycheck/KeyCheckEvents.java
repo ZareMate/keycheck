@@ -297,14 +297,14 @@ public final class KeyCheckEvents {
 
         if ("complete".equals(reason)) {
             if (!session.detected.isEmpty()) {
-                StringBuilder details = new StringBuilder("Detected keybinds:\\n")
-                        .append(String.join("\\n", session.detected));
+                StringBuilder details = new StringBuilder("Detected keybinds:\n")
+                        .append(String.join("\n", session.detected));
                 if (!session.protectedKeys.isEmpty()) {
-                    details.append("\\n\\nProtected/probe-blocked:\\n")
-                            .append(String.join("\\n", session.protectedKeys));
+                    details.append("\n\nProtected/probe-blocked:\n")
+                            .append(String.join("\n", session.protectedKeys));
                 }
-                LOGGER.warn("[KeyCheck] {}: detected blacklisted keybinds:\\n{}", name,
-                        String.join("\\n", session.detected));
+                LOGGER.warn("[KeyCheck] {}: detected blacklisted keybinds:\n{}", name,
+                        String.join("\n", session.detected));
                 DiscordWebhook.send(
                         name,
                         session.player.getUUID().toString(),
@@ -312,13 +312,13 @@ public final class KeyCheckEvents {
                         details.toString()
                 );
             } else if (!session.protectedKeys.isEmpty()) {
-                String list = String.join("\\n", session.protectedKeys);
-                LOGGER.info("[KeyCheck] {}: keybind probe protected for:\\n{}", name, list);
+                String list = String.join("\n", session.protectedKeys);
+                LOGGER.info("[KeyCheck] {}: keybind probe protected for:\n{}", name, list);
                 DiscordWebhook.send(
                         name,
                         session.player.getUUID().toString(),
                         "INCONCLUSIVE",
-                        "Protected/probe-blocked keybinds:\\n" + list
+                        "Protected/probe-blocked keybinds:\n" + list
                 );
             } else {
                 if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
