@@ -335,8 +335,7 @@ public final class KeyCheckEvents {
                     LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected.", name);
                 String details = "No configured blacklisted keybinds were resolved.";
                 sendCommandResult(session, "CLEAN", details);
-                broadcastStaff(session, name + " — CLEAN\n" + details);
-                // Automatic clean join checks intentionally do not generate Discord messages.
+                // Clean checks are only logged/returned to the command sender; they are not broadcast.
                 if (session.commandSource != null) {
                     DiscordWebhook.send(
                             name,
