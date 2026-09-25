@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.neoforged.neoforge.network.PacketDistributor;
 import com.zaremate.keycheck.network.KeyCheckStatusPayload;
+import com.zaremate.keycheck.network.KeyCheckConfigStartPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -60,17 +61,25 @@ public final class KeyCheckEvents {
         if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get())) {
             LOGGER.info("[KeyCheck] Skipping automatic join check for {} due to LuckPerms permission '{}'.",
                     player.getGameProfile().getName(), KeyCheckConfig.JOIN_BYPASS_PERMISSION.get());
+            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
 
-        if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
+        if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) {
+            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+            return;
+        }
 
         List<KeyProbe> joinProbes = KeyCheckConfig.blacklistedProbes();
-        if (!joinProbes.isEmpty())
-            sendClientStatus(player, KeyCheckStatusPayload.START, 0, joinProbes.size(), 0, 0);
+        if (joinProbes.isEmpty()) {
+            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+            return;
+        }
+
+        sendClientStatus(player, KeyCheckStatusPayload.START, 0, joinProbes.size(), 0, 0);
 
         PENDING_JOIN_CHECKS.put(uuid,
-                player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get());
+                player.server.getTickCount() + automaticJoinDelay(player));
     }
 
     @SubscribeEvent
@@ -403,6 +412,12 @@ public final class KeyCheckEvents {
         } catch (Throwable ignored) {
             // The client overlay is optional; detection must continue without it.
         }
+    }
+
+    private static int automaticJoinDelay(ServerPlayer player) {
+        if (player.connection.hasChannel(KeyCheckConfigStartPayload.TYPE))
+            return 1;
+        return KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get();
     }
 
     private static void sendCommandResult(CheckSession session, String status, String details) {

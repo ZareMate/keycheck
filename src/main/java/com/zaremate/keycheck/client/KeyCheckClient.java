@@ -1,14 +1,20 @@
 package com.zaremate.keycheck.client;
 
+import com.zaremate.keycheck.network.KeyCheckConfigAckPayload;
+import com.zaremate.keycheck.network.KeyCheckConfigStartPayload;
 import com.zaremate.keycheck.network.KeyCheckStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 @EventBusSubscriber(modid = "keycheck", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckClient {
     private static volatile boolean active;
+    private static volatile boolean earlyLoadingActive;
+    private static volatile boolean blockingScreenRequested;
     private static volatile int state;
     private static volatile int completed;
     private static volatile int total;
@@ -17,6 +23,15 @@ public final class KeyCheckClient {
     private static volatile long hideAtNanos;
 
     private KeyCheckClient() {}
+
+    @SubscribeEvent
+    public static void registerPayloads(RegisterClientPayloadHandlersEvent event) {
+        event.register(KeyCheckConfigStartPayload.TYPE, (payload, context) -> {
+            beginEarlyLoading();
+            context.reply(KeyCheckConfigAckPayload.INSTANCE);
+        });
+        event.register(KeyCheckStatusPayload.TYPE, (payload, context) -> handleStatus(payload));
+    }
 
     public static void handleStatus(KeyCheckStatusPayload payload) {
         active = payload.state() != KeyCheckStatusPayload.COMPLETE
@@ -27,18 +42,38 @@ public final class KeyCheckClient {
         detected = payload.detected();
         protectedCount = payload.protectedCount();
 
-        if (!active)
+        if (active && earlyLoadingActive)
+            blockingScreenRequested = true;
+
+        if (!active) {
+            earlyLoadingActive = false;
+            blockingScreenRequested = false;
             hideAtNanos = System.nanoTime() + 800_000_000L;
+            closeBlockingScreen();
+        }
     }
 
     public static void reset() {
         active = false;
+        earlyLoadingActive = false;
+        blockingScreenRequested = false;
         state = 0;
         completed = 0;
         total = 0;
         detected = 0;
         protectedCount = 0;
         hideAtNanos = 0;
+        closeBlockingScreen();
+    }
+
+    public static void tick() {
+        if (!blockingScreenRequested || !active) return;
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft == null) return;
+        if (minecraft.screen instanceof KeyCheckLoadingScreen) return;
+
+        minecraft.setScreen(new KeyCheckLoadingScreen());
     }
 
     public static void render(GuiGraphics graphics) {
@@ -125,5 +160,23 @@ public final class KeyCheckClient {
                     0xFF8A8A8A
             );
         }
+    }
+
+    private static void beginEarlyLoading() {
+        active = true;
+        earlyLoadingActive = true;
+        blockingScreenRequested = true;
+        state = KeyCheckStatusPayload.START;
+        completed = 0;
+        total = 0;
+        detected = 0;
+        protectedCount = 0;
+        hideAtNanos = 0;
+    }
+
+    private static void closeBlockingScreen() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft != null && minecraft.screen instanceof KeyCheckLoadingScreen)
+            minecraft.setScreen(null);
     }
 }
