@@ -58,7 +58,6 @@ public final class KeyCheckEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!KeyCheckConfig.AUTO_CHECK_ON_JOIN.get()) return;
         UUID uuid = player.getUUID();
-        if (HELD_LOADING_PACKETS.containsKey(uuid)) return;
 
         if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get())) {
             LOGGER.info("[KeyCheck] Skipping automatic join check for {} due to LuckPerms permission '{}'.",
