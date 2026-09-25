@@ -45,6 +45,13 @@ public final class KeyCheckConfig {
                 .toList();
     }
 
+    public static List<KeyProbe> blacklistedProbes() {
+        return blacklistedKeys().stream()
+                .map(KeyProbe::parse)
+                .filter(probe -> !probe.key().isBlank())
+                .toList();
+    }
+
     public static String webhookUrl() {
         return WEBHOOK_URL.get().trim();
     }
