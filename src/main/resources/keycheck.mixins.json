@@ -7,6 +7,10 @@
     "ServerGamePacketListenerImplMixin",
     "SignBlockEntityAccessor"
   ],
+  "client": [
+    "LoadingOverlayMixin",
+    "NeoForgeLoadingOverlayMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
