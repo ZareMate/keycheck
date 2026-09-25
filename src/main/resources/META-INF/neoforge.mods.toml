@@ -1,0 +1,13 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="keycheck"
+version="1.0.0"
+displayName="KeyCheck"
+authors="ZareMate"
+description='''Server-side key translation checker for NeoForge.'''
+
+[[mixins]]
+config="keycheck.mixins.json"
