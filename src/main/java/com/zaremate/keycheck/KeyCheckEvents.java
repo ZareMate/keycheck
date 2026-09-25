@@ -170,21 +170,7 @@ public final class KeyCheckEvents {
             sendBatch(session);
     }
 
-    private static boolean isDetected(KeyCheckConfig.CheckProbe probe, String response) {
-        if (response.isEmpty()) return false;
-        String key = probe.key();
-        return switch (probe.type()) {
-            case KEYBIND -> !response.equalsIgnoreCase(key);
-            case TRANSLATE, METEOR -> !startsWithIgnoreCase(response, probe.fallback());
-        };
-    }
-
-    private static boolean startsWithIgnoreCase(String value, String prefix) {
-        return prefix.length() <= value.length()
-                && value.regionMatches(true, 0, prefix, 0, prefix.length());
-    }
-
-    private static int startCheck(ServerPlayer target, ServerPlayer initiator) {
+        private static int startCheck(ServerPlayer target, ServerPlayer initiator) {
         if (SESSIONS.containsKey(target.getUUID())) {
             LOGGER.info("[KeyCheck] {} is already being checked.", target.getGameProfile().getName());
             return 0;
@@ -382,7 +368,7 @@ public final class KeyCheckEvents {
         final ServerPlayer player;
         final ServerPlayer initiator;
         final List<KeyProbe> probes;
-        final Set<KeyCheckConfig.CheckProbe> detected = new LinkedHashSet<>();
+        final Set<String> detected = new LinkedHashSet<>();
         final Set<String> protectedKeys = new LinkedHashSet<>();
 
         int index;
