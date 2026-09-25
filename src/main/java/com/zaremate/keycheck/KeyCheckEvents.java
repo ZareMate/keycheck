@@ -192,6 +192,16 @@ public final class KeyCheckEvents {
         session.awaiting = true;
         session.timeoutTick =
                 player.server.getTickCount() + KeyCheckConfig.TIMEOUT_TICKS.get();
+
+        // Match CheckHacks: remove the fake sign from this client's view one
+        // tick after opening the editor. The server world is never modified.
+        player.server.execute(() -> {
+            if (!session.finished && session.awaiting && session.pos != null) {
+                player.connection.send(
+                        new ClientboundBlockUpdatePacket(session.pos, session.originalState)
+                );
+            }
+        });
     }
 
     private static void finish(CheckSession session, String reason) {
