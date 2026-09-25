@@ -1,0 +1,68 @@
+package com.zaremate.keycheck;
+
+import com.mojang.logging.LogUtils;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import org.slf4j.Logger;
+
+public final class DiscordWebhook {
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final HttpClient CLIENT = HttpClient.newHttpClient();
+
+    private DiscordWebhook() {}
+
+    public static void send(String player, String uuid, String status, String details) {
+        String url = KeyCheckConfig.webhookUrl();
+        if (!KeyCheckConfig.WEBHOOK_ENABLED.get() || url.isBlank()) return;
+
+        String description = "Player: **" + escapeMarkdown(player) + "**\\n"
+                + "UUID: " + escapeMarkdown(uuid) + "\\n"
+                + "Status: **" + escapeMarkdown(status) + "**\\n\\n"
+                + escapeMarkdown(details);
+
+        String json = "{"
+                + "\"username\":\"KeyCheck\","
+                + "\"embeds\":[{"
+                + "\"title\":\"KeyCheck result\","
+                + "\"description\":\"" + escapeJson(description) + "\","
+                + "\"color\":" + (status.equals("DETECTED") ? 15158332 : 3066993)
+                + "}]"
+                + "}";
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                    .thenAccept(response -> {
+                        if (response.statusCode() < 200 || response.statusCode() >= 300)
+                            LOGGER.warn("[KeyCheck] Discord webhook returned HTTP {}", response.statusCode());
+                    })
+                    .exceptionally(error -> {
+                        LOGGER.warn("[KeyCheck] Discord webhook failed: {}", error.getMessage());
+                        return null;
+                    });
+        } catch (Exception e) {
+            LOGGER.warn("[KeyCheck] Invalid Discord webhook URL: {}", e.getMessage());
+        }
+    }
+
+    private static String escapeJson(String value) {
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    private static String escapeMarkdown(String value) {
+        return value.replace("\\", "\\\\")
+                .replace("*", "\\*")
+                .replace("_", "\\_");
+    }
+}
