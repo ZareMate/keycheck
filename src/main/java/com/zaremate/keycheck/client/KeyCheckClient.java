@@ -25,12 +25,17 @@ public final class KeyCheckClient {
         active = payload.state() != KeyCheckStatusPayload.COMPLETE
                 && payload.state() != KeyCheckStatusPayload.FAILED;
         state = payload.state();
+
+        if (payload.state() == KeyCheckStatusPayload.ANNOUNCEMENT) {
+            airportUntilNanos = System.nanoTime() + 2_000_000_000L;
+            blockingScreenRequested = true;
+        }
         completed = payload.completed();
         total = payload.total();
         detected = payload.detected();
         protectedCount = payload.protectedCount();
 
-        if (active && earlyLoadingActive)
+        if (active && (earlyLoadingActive || payload.state() == KeyCheckStatusPayload.ANNOUNCEMENT))
             blockingScreenRequested = true;
 
         if (!active) {
