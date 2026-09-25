@@ -38,7 +38,7 @@ public final class KeyCheckEvents {
     public static void onCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(
                 Commands.literal("keycheck")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(source -> LuckPermsPermissions.hasPermission(source, KeyCheckConfig.COMMAND_PERMISSION.get()))
                         .then(Commands.argument("player",
                                 net.minecraft.commands.arguments.EntityArgument.player())
                                 .executes(ctx -> {
@@ -53,6 +53,11 @@ public final class KeyCheckEvents {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!KeyCheckConfig.AUTO_CHECK_ON_JOIN.get()) return;
+        if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get())) {
+            LOGGER.info("[KeyCheck] Skipping automatic join check for {} due to LuckPerms permission '{}'.",
+                    player.getGameProfile().getName(), KeyCheckConfig.JOIN_BYPASS_PERMISSION.get());
+            return;
+        }
         UUID uuid = player.getUUID();
         if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
         PENDING_JOIN_CHECKS.put(uuid,
