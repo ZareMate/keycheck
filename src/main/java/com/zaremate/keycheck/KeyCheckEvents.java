@@ -25,7 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class KeyCheckEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final int LINES_PER_BATCH = 4;
+    private static final int LINES_PER_BATCH = 3;
+    private static final String CTRL_KEYBIND = "key.forward";
     private static final Map<UUID, CheckSession> SESSIONS = new ConcurrentHashMap<>();
 
     private KeyCheckEvents() {}
@@ -84,10 +85,25 @@ public final class KeyCheckEvents {
         );
         String[] lines = packet.getLines();
 
+        String ctrlResponse = lines.length > 3 && lines[3] != null
+                ? lines[3].trim()
+                : "";
+        boolean exploitPreventer = ctrlResponse.equalsIgnoreCase(CTRL_KEYBIND);
+
         for (int i = 0; i < batch.size() && i < lines.length; i++) {
             String response = lines[i] == null ? "" : lines[i].trim();
-            if (response.equalsIgnoreCase(batch.get(i)))
-                session.detected.add(batch.get(i));
+            String key = batch.get(i);
+
+            // Match CheckHacks KEYBIND behavior:
+            // literal translation key / empty response = not detected;
+            // a different resolved keybind value = detected.
+            if (!response.isEmpty() && !response.equalsIgnoreCase(key)) {
+                session.detected.add(key);
+            }
+
+            if (exploitPreventer && response.equalsIgnoreCase(key)) {
+                session.protectedKeys.add(key);
+            }
         }
 
         restoreClientView(session);
@@ -155,6 +171,10 @@ public final class KeyCheckEvents {
                     i < batch.size() ? Component.keybind(batch.get(i)) : Component.empty()
             );
         }
+
+        // CheckHacks reserves the fourth line for an ordinary keybind used
+        // to identify clients that protect keybind translation.
+        text = text.setMessage(3, Component.keybind(CTRL_KEYBIND));
 
         /*
          * Do not call SignBlockEntity#setText here.
@@ -272,6 +292,7 @@ public final class KeyCheckEvents {
         final ServerPlayer initiator;
         final List<String> keys;
         final Set<String> detected = new LinkedHashSet<>();
+        final Set<String> protectedKeys = new LinkedHashSet<>();
 
         int index;
         int timeoutTick;
