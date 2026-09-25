@@ -28,6 +28,10 @@ public final class KeyCheckConfig {
             BUILDER.comment("LuckPerms permission that exempts a player from automatic join checks.")
                     .define("join_bypass_permission", "keycheck.join.bypass");
 
+    public static final ModConfigSpec.ConfigValue<String> BROADCAST_PERMISSION =
+            BUILDER.comment("LuckPerms permission that allows receiving KeyCheck result broadcasts.")
+                    .define("broadcast_permission", "keycheck.alerts");
+
     public static final ModConfigSpec.BooleanValue AUTO_CHECK_ON_JOIN =
             BUILDER.comment("Automatically check players after they join the server.")
                     .define("auto_check_on_join", true);
