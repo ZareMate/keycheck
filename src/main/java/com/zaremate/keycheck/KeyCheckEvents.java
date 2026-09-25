@@ -115,6 +115,12 @@ public final class KeyCheckEvents {
         }
 
         for (CheckSession session : new ArrayList<>(SESSIONS.values())) {
+            if (session.startTick > 0 && tick >= session.startTick) {
+                session.startTick = 0;
+                if (!session.finished)
+                    sendBatch(session);
+            }
+
             if (session.openTick > 0 && tick >= session.openTick) {
                 session.openTick = 0;
                 if (!session.finished && session.pos != null) {
@@ -221,8 +227,13 @@ public final class KeyCheckEvents {
         LOGGER.info("[KeyCheck] Checking {} for {} configured probe(s).",
                 target.getGameProfile().getName(), probes.size());
 
-        sendClientStatus(session, KeyCheckStatusPayload.START);
-        sendBatch(session);
+        if (commandSource != null) {
+            sendClientStatus(session, KeyCheckStatusPayload.ANNOUNCEMENT);
+            session.startTick = target.server.getTickCount() + 40;
+        } else {
+            sendClientStatus(session, KeyCheckStatusPayload.START);
+            sendBatch(session);
+        }
         return 1;
     }
 
@@ -478,6 +489,7 @@ public final class KeyCheckEvents {
         final Set<String> protectedKeys = new LinkedHashSet<>();
 
         int index;
+        int startTick;
         int openTick;
         int timeoutTick;
         BlockPos pos;
