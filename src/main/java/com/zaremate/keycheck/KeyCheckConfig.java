@@ -70,6 +70,10 @@ public final class KeyCheckConfig {
             BUILDER.comment("Automatically check players after they join the server.")
                     .define("auto_check_on_join", true);
 
+    public static final ModConfigSpec.IntValue JOIN_CHECK_CHANCE_PERCENT =
+            BUILDER.comment("Chance in percent that an eligible player is automatically checked on join.")
+                    .defineInRange("join_check_chance_percent", 10, 0, 100);
+
     public static final ModConfigSpec.BooleanValue ONLY_FIRST_JOIN =
             BUILDER.comment("When enabled, automatically check each UUID only once while the server is running.")
                     .define("only_first_join", false);
