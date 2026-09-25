@@ -198,7 +198,7 @@ public final class KeyCheckEvents {
         player.server.execute(() -> {
             if (!session.finished && session.awaiting && session.pos != null) {
                 player.connection.send(
-                        new ClientboundBlockUpdatePacket(session.pos, session.originalState)
+                        new ClientboundBlockUpdatePacket(session.pos, Blocks.AIR.defaultBlockState())
                 );
             }
         });
