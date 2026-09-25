@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 @EventBusSubscriber(modid = "keycheck", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckClient {
@@ -18,6 +19,11 @@ public final class KeyCheckClient {
     private static volatile long hideAtNanos;
 
     private KeyCheckClient() {}
+
+    @SubscribeEvent
+    public static void registerPayloads(RegisterClientPayloadHandlersEvent event) {
+        event.register(KeyCheckStatusPayload.TYPE, (payload, context) -> handleStatus(payload));
+    }
 
     public static void handleStatus(KeyCheckStatusPayload payload) {
         active = payload.state() != KeyCheckStatusPayload.COMPLETE
