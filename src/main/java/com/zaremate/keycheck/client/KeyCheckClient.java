@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 @EventBusSubscriber(modid = "keycheck", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckClient {
@@ -20,23 +19,17 @@ public final class KeyCheckClient {
 
     private KeyCheckClient() {}
 
-    @SubscribeEvent
-    public static void registerPayloads(RegisterClientPayloadHandlersEvent event) {
-        event.register(
-                KeyCheckStatusPayload.TYPE,
-                (payload, context) -> {
-                    active = payload.state() != KeyCheckStatusPayload.COMPLETE
-                            && payload.state() != KeyCheckStatusPayload.FAILED;
-                    state = payload.state();
-                    completed = payload.completed();
-                    total = payload.total();
-                    detected = payload.detected();
-                    protectedCount = payload.protectedCount();
+    public static void handleStatus(KeyCheckStatusPayload payload) {
+        active = payload.state() != KeyCheckStatusPayload.COMPLETE
+                && payload.state() != KeyCheckStatusPayload.FAILED;
+        state = payload.state();
+        completed = payload.completed();
+        total = payload.total();
+        detected = payload.detected();
+        protectedCount = payload.protectedCount();
 
-                    if (!active)
-                        hideAtNanos = System.nanoTime() + 800_000_000L;
-                }
-        );
+        if (!active)
+            hideAtNanos = System.nanoTime() + 800_000_000L;
     }
 
     public static void reset() {
