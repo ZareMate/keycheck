@@ -93,6 +93,6 @@ Detection is heuristic because a modified client can suppress or spoof client-si
 
 ## Client overlay
 
-The mod includes an optional client-side verification overlay. When a check starts, the client shows a small KeyCheck panel over the Minecraft loading overlay when that screen is still visible, and continues showing it over the normal HUD until the check finishes.
+The mod includes an optional client-side verification overlay. On NeoForge clients with the KeyCheck mod installed, the server now starts a small configuration-phase handshake so the KeyCheck panel appears during the loading/configuration sequence before the world is shown. If the server-side sign probe is still running after login, the client keeps a blocking KeyCheck loading screen open until the check finishes and then returns to normal gameplay.
 
 The detection logic remains server-side. The KeyCheck mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
