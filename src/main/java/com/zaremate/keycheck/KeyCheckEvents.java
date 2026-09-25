@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.state.BlockState;
+import com.zaremate.keycheck.mixin.SignBlockEntityAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -60,6 +61,20 @@ public final class KeyCheckEvents {
     public static void onTick(ServerTickEvent.Post event) {
         int tick = event.getServer().getTickCount();
         for (CheckSession session : new ArrayList<>(SESSIONS.values())) {
+            if (session.openTick > 0 && tick >= session.openTick) {
+                session.openTick = 0;
+                if (!session.finished && session.pos != null) {
+                    session.player.connection.send(
+                            new ClientboundOpenSignEditorPacket(session.pos, true));
+                    // CheckHacks immediately clears the sign from the client's view
+                    // after opening the editor; this does not touch the server world.
+                    session.player.connection.send(
+                            new ClientboundBlockUpdatePacket(
+                                    session.pos, Blocks.AIR.defaultBlockState()));
+                    session.awaiting = true;
+                    session.timeoutTick = tick + KeyCheckConfig.TIMEOUT_TICKS.get();
+                }
+            }
             if (session.awaiting && tick >= session.timeoutTick)
                 finish(session, "timeout");
         }
@@ -186,51 +201,20 @@ public final class KeyCheckEvents {
         text = text.setMessage(3, Component.keybind(CTRL_KEYBIND));
 
         /*
-         * Do not call SignBlockEntity#setText here.
-         * The temporary SignBlockEntity has no Level attached, and other server
-         * mods may inject into setText/markUpdated. Serialize the SignText
-         * directly instead, keeping the probe entirely client-side.
+         * Use the actual SignBlockEntity serializer so the NBT has the same
+         * front_text/back_text structure as a normal Minecraft sign.
          */
-        var encodedFront = SignText.DIRECT_CODEC.encodeStart(
-                net.minecraft.nbt.NbtOps.INSTANCE, text
-        );
-
-        if (encodedFront.error().isPresent()) {
-            finish(session, "failed to encode sign text");
-            return;
-        }
-
-        net.minecraft.nbt.CompoundTag frontText =
-                (net.minecraft.nbt.CompoundTag) encodedFront.getOrThrow();
+        SignBlockEntityAccessor accessor = (SignBlockEntityAccessor) sign;
+        accessor.keycheck$setFrontText(text);
+        accessor.keycheck$setBackText(new SignText());
+        accessor.keycheck$setEditor(player.getUUID());
 
         player.connection.send(new ClientboundBlockUpdatePacket(pos, fakeSignState));
-        player.connection.send(ClientboundBlockEntityDataPacket.create(
-                sign,
-                (blockEntity, registries) -> {
-                    net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
-                    tag.put("front_text", frontText.copy());
-                    tag.put("back_text", SignText.DIRECT_CODEC.encodeStart(
-                            net.minecraft.nbt.NbtOps.INSTANCE,
-                            new SignText()
-                    ).getOrThrow());
-                    return tag;
-                }
-        ));
-        player.connection.send(new ClientboundOpenSignEditorPacket(pos, true));
+        player.connection.send(ClientboundBlockEntityDataPacket.create(sign));
 
-        session.awaiting = true;
-        session.timeoutTick =
-                player.server.getTickCount() + KeyCheckConfig.TIMEOUT_TICKS.get();
-
-        // Match CheckHacks: remove the fake sign from this client's view one
-        // tick after opening the editor. The server world is never modified.
-        player.server.execute(() -> {
-            if (!session.finished && session.awaiting && session.pos != null) {
-                player.connection.send(
-                        new ClientboundBlockUpdatePacket(session.pos, Blocks.AIR.defaultBlockState())
-                );
-            }
-        });
+        // CheckHacks waits one tick after sending the sign data, then opens the
+        // editor and immediately hides the sign from the checking client.
+        session.openTick = player.server.getTickCount() + 1;
     }
 
     private static void finish(CheckSession session, String reason) {
@@ -319,6 +303,7 @@ public final class KeyCheckEvents {
         final Set<String> protectedKeys = new LinkedHashSet<>();
 
         int index;
+        int openTick;
         int timeoutTick;
         BlockPos pos;
         BlockState originalState;
