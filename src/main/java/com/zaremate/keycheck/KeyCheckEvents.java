@@ -65,6 +65,10 @@ public final class KeyCheckEvents {
 
         if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
 
+        List<KeyProbe> joinProbes = KeyCheckConfig.blacklistedProbes();
+        if (!joinProbes.isEmpty())
+            sendClientStatus(player, KeyCheckStatusPayload.START, 0, joinProbes.size(), 0, 0);
+
         PENDING_JOIN_CHECKS.put(uuid,
                 player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get());
     }
@@ -373,16 +377,28 @@ public final class KeyCheckEvents {
     }
 
     private static void sendClientStatus(CheckSession session, int state) {
+        sendClientStatus(
+                session.player,
+                state,
+                session.index,
+                session.probes.size(),
+                session.detected.size(),
+                session.protectedKeys.size()
+        );
+    }
+
+    private static void sendClientStatus(
+            ServerPlayer player,
+            int state,
+            int completed,
+            int total,
+            int detected,
+            int protectedCount
+    ) {
         try {
             PacketDistributor.sendToPlayer(
-                    session.player,
-                    new KeyCheckStatusPayload(
-                            state,
-                            session.index,
-                            session.probes.size(),
-                            session.detected.size(),
-                            session.protectedKeys.size()
-                    )
+                    player,
+                    new KeyCheckStatusPayload(state, completed, total, detected, protectedCount)
             );
         } catch (Throwable ignored) {
             // The client overlay is optional; detection must continue without it.
