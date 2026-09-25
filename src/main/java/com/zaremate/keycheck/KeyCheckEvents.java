@@ -86,8 +86,11 @@ public final class KeyCheckEvents {
             UUID uuid = entry.getKey();
             PENDING_JOIN_CHECKS.remove(uuid);
             ServerPlayer player = event.getServer().getPlayerList().getPlayer(uuid);
-            if (player != null && player.isAlive() && !SESSIONS.containsKey(uuid))
+            if (player != null && player.isAlive() && !SESSIONS.containsKey(uuid)) {
                 startCheck(player, null);
+            } else if (player != null) {
+                releaseLoadingScreen(player);
+            }
         }
 
         for (CheckSession session : new ArrayList<>(SESSIONS.values())) {
