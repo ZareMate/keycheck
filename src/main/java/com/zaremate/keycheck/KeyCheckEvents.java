@@ -95,15 +95,24 @@ public final class KeyCheckEvents {
             String key = batch.get(i);
 
             // Match CheckHacks KEYBIND behavior:
-            // literal translation key / empty response = not detected;
-            // a different resolved keybind value = detected.
-            if (!response.isEmpty() && !response.equalsIgnoreCase(key)) {
-                session.detected.add(key);
+            // empty response -> NOT_DETECTED
+            // literal translation key -> NOT_DETECTED
+            // key + one trailing letter -> NOT_DETECTED
+            // any other resolved value -> DETECTED.
+            if (response.isEmpty()) continue;
+
+            if (response.length() == key.length() + 1
+                    && response.regionMatches(true, 0, key, 0, key.length())
+                    && Character.isLetter(response.charAt(key.length()))) {
+                continue;
             }
 
-            if (exploitPreventer && response.equalsIgnoreCase(key)) {
-                session.protectedKeys.add(key);
+            if (response.equalsIgnoreCase(key)) {
+                if (exploitPreventer) session.protectedKeys.add(key);
+                continue;
             }
+
+            session.detected.add(key);
         }
 
         restoreClientView(session);
@@ -234,7 +243,31 @@ public final class KeyCheckEvents {
         String name = session.player.getGameProfile().getName();
 
         if ("complete".equals(reason)) {
-            if (session.detected.isEmpty()) {
+            if (!session.detected.isEmpty()) {
+                StringBuilder details = new StringBuilder("Detected keybinds:\\n")
+                        .append(String.join("\\n", session.detected));
+                if (!session.protectedKeys.isEmpty()) {
+                    details.append("\\n\\nProtected/probe-blocked:\\n")
+                            .append(String.join("\\n", session.protectedKeys));
+                }
+                LOGGER.warn("[KeyCheck] {}: detected blacklisted keybinds:\\n{}", name,
+                        String.join("\\n", session.detected));
+                DiscordWebhook.send(
+                        name,
+                        session.player.getUUID().toString(),
+                        "DETECTED",
+                        details.toString()
+                );
+            } else if (!session.protectedKeys.isEmpty()) {
+                String list = String.join("\\n", session.protectedKeys);
+                LOGGER.info("[KeyCheck] {}: keybind probe protected for:\\n{}", name, list);
+                DiscordWebhook.send(
+                        name,
+                        session.player.getUUID().toString(),
+                        "INCONCLUSIVE",
+                        "Protected/probe-blocked keybinds:\\n" + list
+                );
+            } else {
                 if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
                     LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected.", name);
                 DiscordWebhook.send(
@@ -242,15 +275,6 @@ public final class KeyCheckEvents {
                         session.player.getUUID().toString(),
                         "CLEAN",
                         "No configured blacklisted keybinds were resolved."
-                );
-            } else {
-                String list = String.join("\n", session.detected);
-                LOGGER.warn("[KeyCheck] {}: detected blacklisted keybinds:\n{}", name, list);
-                DiscordWebhook.send(
-                        name,
-                        session.player.getUUID().toString(),
-                        "DETECTED",
-                        "Detected keybinds:\n" + list
                 );
             }
         } else {
