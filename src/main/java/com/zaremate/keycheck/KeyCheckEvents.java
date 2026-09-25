@@ -335,10 +335,10 @@ public final class KeyCheckEvents {
         boolean awaiting;
         boolean finished;
 
-        CheckSession(ServerPlayer player, ServerPlayer initiator, List<String> keys) {
+        CheckSession(ServerPlayer player, ServerPlayer initiator, List<KeyProbe> probes) {
             this.player = player;
             this.initiator = initiator;
-            this.keys = List.copyOf(keys);
+            this.probes = List.copyOf(probes);
         }
     }
 }
