@@ -2,11 +2,40 @@
 
 Server-side NeoForge 1.21.1 mod that probes client keybind/translation keys.
 
+## LuckPerms
+
+KeyCheck uses LuckPerms for permission checks.
+
+The default permissions are:
+
+- `keycheck.command` — allows a player to use `/keycheck <player>`.
+- `keycheck.join.bypass` — prevents that player from being automatically checked on join.
+
+Both permission nodes can be changed in `config/keycheck-common.toml`:
+
+```toml
+command_permission = "keycheck.command"
+join_bypass_permission = "keycheck.join.bypass"
+```
+
+Example LuckPerms setup:
+
+```
+/lp group admin permission set keycheck.command true
+/lp group admin permission set keycheck.join.bypass true
+```
+
+The server console can run `/keycheck` without a player permission check.
+
+LuckPerms must be installed on the NeoForge server for player permission checks. The mod compiles against the LuckPerms 5.5 API.
+
 ## Manual check
 
-`/keycheck <player>`
+```
+/keycheck <player>
+```
 
-Requires permission level 2.
+The result is returned to the command sender and sent to Discord when the webhook is enabled.
 
 ## Probe types
 
@@ -20,13 +49,9 @@ blacklisted_keys = [
 ]
 ```
 
-Supported types:
+Supported types are `KEYBIND`, `TRANSLATE`, and `METEOR`.
 
-- `KEYBIND` — uses `Component.keybind(...)`.
-- `TRANSLATE` — uses `Component.translatableWithFallback(...)`.
-- `METEOR` — uses the Meteor-style translation probe used by CheckHacks.
-
-A bare entry such as `key.freecam.toggle` is still accepted and defaults to `KEYBIND`.
+A bare key is accepted for backwards compatibility.
 
 ## Automatic join checks
 
@@ -36,7 +61,7 @@ only_first_join = false
 join_check_delay_ticks = 60
 ```
 
-The default delay is 60 ticks (about 3 seconds), matching the original CheckHacks join-check timing.
+Players with `keycheck.join.bypass` are skipped from automatic join checks.
 
 ## Discord webhook
 
@@ -45,7 +70,9 @@ webhook_enabled = true
 webhook_url = "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
 ```
 
-Results are sent to Discord as embeds. Keep the webhook URL private.
+Automatic clean checks do not generate a Discord message. Detected and inconclusive automatic results are sent.
+
+Manual checks send their final result to the command sender. Manual clean checks also send their result to Discord.
 
 ## Enforcement
 
@@ -55,7 +82,7 @@ The probe uses temporary client-side packets and intercepts the sign response be
 
 ## Build
 
-Java 21 + Gradle:
+Requires Java 21 and Gradle:
 
 ```bash
 gradle build
