@@ -6,7 +6,6 @@
   "mixins": [
     "ServerGamePacketListenerImplMixin",
     "SignBlockEntityAccessor"
-    "ServerCommonPacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1
