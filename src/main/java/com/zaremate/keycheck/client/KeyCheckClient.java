@@ -17,6 +17,7 @@ public final class KeyCheckClient {
     private static volatile int detected;
     private static volatile int protectedCount;
     private static volatile long hideAtNanos;
+    private static volatile long airportUntilNanos;
 
     private KeyCheckClient() {}
 
@@ -40,6 +41,41 @@ public final class KeyCheckClient {
         }
     }
 
+    private static void renderAirportAnnouncement(GuiGraphics graphics, Minecraft minecraft, int width, int height) {
+        graphics.fill(0, 0, width, height, 0xE608111D);
+
+        int boxWidth = Math.min(620, width - 40);
+        int boxHeight = 220;
+        int left = (width - boxWidth) / 2;
+        int top = Math.max(30, height / 2 - boxHeight / 2);
+
+        graphics.fill(left + 3, top + 3, left + boxWidth + 3, top + boxHeight + 3, 0x66000000);
+        graphics.fill(left, top, left + boxWidth, top + boxHeight, 0xF0182230);
+        graphics.fill(left, top, left + boxWidth, top + 4, 0xFF35C7FF);
+        graphics.fill(left, top + 4, left + boxWidth, top + 8, 0xFFFFC857);
+
+        graphics.drawCenteredString(minecraft.font, "✈  AIRPORT SECURITY", width / 2, top + 24, 0xFFFFFFFF);
+        graphics.drawCenteredString(minecraft.font, "CHECK INCOMING", width / 2, top + 48, 0xFFFFC857);
+        graphics.drawCenteredString(minecraft.font, "Please remain connected", width / 2, top + 84, 0xFFE5EAF0);
+        graphics.drawCenteredString(minecraft.font, "Your client will be verified before entry", width / 2, top + 102, 0xFF9FB0C2);
+
+        int barLeft = left + 70;
+        int barRight = left + boxWidth - 70;
+        int barTop = top + 140;
+        int barBottom = barTop + 12;
+        graphics.fill(barLeft, barTop, barRight, barBottom, 0xFF2E3946);
+
+        long remaining = Math.max(0L, airportUntilNanos - System.nanoTime());
+        double progress = 1.0 - Math.min(1.0, remaining / 2_000_000_000.0);
+        int fillRight = barLeft + (int) ((barRight - barLeft) * progress);
+        if (fillRight > barLeft)
+            graphics.fill(barLeft, barTop, fillRight, barBottom, 0xFF35C7FF);
+
+        String seconds = String.format(java.util.Locale.ROOT, "%.1f s", remaining / 1_000_000_000.0);
+        graphics.drawCenteredString(minecraft.font, seconds, width / 2, top + 162, 0xFFFFFFFF);
+        graphics.drawCenteredString(minecraft.font, "BOARDING / VERIFICATION", width / 2, top + 190, 0xFF6DE0B8);
+    }
+
     public static void reset() {
         active = false;
         earlyLoadingActive = false;
@@ -50,6 +86,7 @@ public final class KeyCheckClient {
         detected = 0;
         protectedCount = 0;
         hideAtNanos = 0;
+        airportUntilNanos = 0;
         closeBlockingScreen();
     }
 
@@ -64,7 +101,8 @@ public final class KeyCheckClient {
     }
 
     public static void render(GuiGraphics graphics) {
-        if (!active && System.nanoTime() >= hideAtNanos)
+        long now = System.nanoTime();
+        if (!active && now >= hideAtNanos && now >= airportUntilNanos)
             return;
 
         Minecraft minecraft = Minecraft.getInstance();
@@ -73,6 +111,11 @@ public final class KeyCheckClient {
 
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
+
+        if (now < airportUntilNanos) {
+            renderAirportAnnouncement(graphics, minecraft, width, height);
+            return;
+        }
 
         int boxWidth = Math.min(420, width - 40);
         int boxHeight = 112;
@@ -150,6 +193,18 @@ public final class KeyCheckClient {
     }
 
     public static void beginEarlyLoading() {
+        active = true;
+        earlyLoadingActive = true;
+        blockingScreenRequested = true;
+        state = KeyCheckStatusPayload.START;
+        completed = 0;
+        total = 0;
+        detected = 0;
+        protectedCount = 0;
+        hideAtNanos = 0;
+        airportUntilNanos = System.nanoTime() + 2_000_000_000L;
+    }
+
         active = true;
         earlyLoadingActive = true;
         blockingScreenRequested = true;
