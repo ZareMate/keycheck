@@ -5,6 +5,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
@@ -30,6 +31,7 @@ public final class KeyCheckEvents {
     private static final String CTRL_KEYBIND = "key.forward";
     private static final Map<UUID, CheckSession> SESSIONS = new ConcurrentHashMap<>();
     private static final Map<UUID, Integer> PENDING_JOIN_CHECKS = new ConcurrentHashMap<>();
+    private static final Map<UUID, ClientboundGameEventPacket> HELD_LOADING_PACKETS = new ConcurrentHashMap<>();
     private static final Set<UUID> FIRST_JOIN_CHECKED = ConcurrentHashMap.newKeySet();
 
     private KeyCheckEvents() {}
@@ -59,6 +61,7 @@ public final class KeyCheckEvents {
             return;
         }
         UUID uuid = player.getUUID();
+        if (HELD_LOADING_PACKETS.containsKey(uuid)) return;
         if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) return;
         PENDING_JOIN_CHECKS.put(uuid,
                 player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get());
@@ -68,6 +71,7 @@ public final class KeyCheckEvents {
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             PENDING_JOIN_CHECKS.remove(player.getUUID());
+            HELD_LOADING_PACKETS.remove(player.getUUID());
             CheckSession session = SESSIONS.remove(player.getUUID());
             if (session != null) finish(session, "logout");
         }
@@ -104,6 +108,58 @@ public final class KeyCheckEvents {
             if (session.awaiting && tick >= session.timeoutTick)
                 finish(session, "timeout");
         }
+    }
+
+    /**
+     * Intercepts the client's initial chunk-load-start signal for automatic join checks.
+     * The packet is sent only after the complete check has finished.
+     */
+    public static boolean holdLoadingScreen(
+            net.minecraft.server.network.ServerGamePacketListenerImpl connection,
+            ClientboundGameEventPacket packet) {
+        if (packet.getEvent() != ClientboundGameEventPacket.LEVEL_CHUNKS_LOAD_START)
+            return false;
+        if (!KeyCheckConfig.AUTO_CHECK_ON_JOIN.get())
+            return false;
+
+        ServerPlayer player = connection.getPlayer();
+        if (player == null)
+            return false;
+
+        if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get()))
+            return false;
+
+        UUID uuid = player.getUUID();
+        if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && FIRST_JOIN_CHECKED.contains(uuid))
+            return false;
+
+        FIRST_JOIN_CHECKED.add(uuid);
+        ClientboundGameEventPacket previous = HELD_LOADING_PACKETS.putIfAbsent(uuid, packet);
+        if (previous != null)
+            return true;
+
+        PENDING_JOIN_CHECKS.put(
+                uuid,
+                player.server.getTickCount() + KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get()
+        );
+
+        LOGGER.info(
+                "[KeyCheck] Holding {} on the client loading screen until the join check completes.",
+                player.getGameProfile().getName()
+        );
+        return true;
+    }
+
+    private static void releaseLoadingScreen(ServerPlayer player) {
+        ClientboundGameEventPacket packet = HELD_LOADING_PACKETS.remove(player.getUUID());
+        if (packet == null)
+            return;
+
+        player.connection.send(packet);
+        LOGGER.info(
+                "[KeyCheck] Released {} from the client loading screen; KeyCheck is complete.",
+                player.getGameProfile().getName()
+        );
     }
 
     public static boolean isExpectedPacket(ServerPlayer player, ServerboundSignUpdatePacket packet) {
@@ -184,6 +240,7 @@ public final class KeyCheckEvents {
         if (probes.isEmpty()) {
             if (commandSource != null) commandSource.sendFailure(Component.literal("No blacklisted keys are configured."));
             LOGGER.warn("[KeyCheck] No blacklisted keys are configured.");
+            releaseLoadingScreen(target);
             return 0;
         }
 
@@ -297,6 +354,7 @@ public final class KeyCheckEvents {
         session.finished = true;
         SESSIONS.remove(session.player.getUUID());
         restoreClientView(session);
+        releaseLoadingScreen(session.player);
 
         String name = session.player.getGameProfile().getName();
 
