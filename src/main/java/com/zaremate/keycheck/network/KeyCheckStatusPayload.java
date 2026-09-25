@@ -1,7 +1,7 @@
 package com.zaremate.keycheck.network;
 
 import com.zaremate.keycheck.KeyCheck;
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -17,7 +17,7 @@ public record KeyCheckStatusPayload(int state, int completed, int total, int det
     public static final Type<KeyCheckStatusPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(KeyCheck.MOD_ID, "status"));
 
-    public static final StreamCodec<ByteBuf, KeyCheckStatusPayload> STREAM_CODEC =
+    public static final StreamCodec<RegistryFriendlyByteBuf, KeyCheckStatusPayload> STREAM_CODEC =
             StreamCodec.composite(
                     ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::state,
                     ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::completed,
