@@ -38,7 +38,7 @@ public final class KeyCheckEvents {
     public static void onCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(
                 Commands.literal("keycheck")
-                        .requires(source -> LuckPermsPermissions.hasPermission(source, KeyCheckConfig.COMMAND_PERMISSION.get()))
+                        .requires(source -> source.hasPermission(3) || LuckPermsPermissions.hasPermission(source, KeyCheckConfig.COMMAND_PERMISSION.get()))
                         .then(Commands.argument("player",
                                 net.minecraft.commands.arguments.EntityArgument.player())
                                 .executes(ctx -> {
