@@ -1,6 +1,6 @@
 # KeyCheck
 
-Server-side NeoForge 1.21.1 mod that probes client keybind translation keys.
+Server-side NeoForge 1.21.1 mod that probes client keybind/translation keys.
 
 ## Manual check
 
@@ -8,11 +8,27 @@ Server-side NeoForge 1.21.1 mod that probes client keybind translation keys.
 
 Requires permission level 2.
 
+## Probe types
+
+Each entry in `blacklisted_keys` can define its own type:
+
+```toml
+blacklisted_keys = [
+    "METEOR:key.meteor-client.open-gui",
+    "KEYBIND:key.freecam.toggle",
+    "TRANSLATE:litematica.hotkey.name.openmainmenuscreen"
+]
+```
+
+Supported types:
+
+- `KEYBIND` — uses `Component.keybind(...)`.
+- `TRANSLATE` — uses `Component.translatableWithFallback(...)`.
+- `METEOR` — uses the Meteor-style translation probe used by CheckHacks.
+
+A bare entry such as `key.freecam.toggle` is still accepted and defaults to `KEYBIND`.
+
 ## Automatic join checks
-
-Players can be checked automatically shortly after joining, similar to CheckHacks.
-
-Configuration:
 
 ```toml
 auto_check_on_join = true
@@ -20,11 +36,7 @@ only_first_join = false
 join_check_delay_ticks = 60
 ```
 
-- `auto_check_on_join`: run a check after login.
-- `only_first_join`: only automatically check each UUID once per server runtime.
-- `join_check_delay_ticks`: delay after login; 60 ticks is about 3 seconds.
-
-The automatic check uses the configured `blacklisted_keys` list.
+The default delay is 60 ticks (about 3 seconds), matching the original CheckHacks join-check timing.
 
 ## Discord webhook
 
@@ -33,36 +45,20 @@ webhook_enabled = true
 webhook_url = "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
 ```
 
-One Discord embed is sent for each completed or inconclusive check. Keep the webhook URL private.
-
-## Full default configuration
-
-```toml
-blacklisted_keys = [
-    "key.meteor-client.open-gui"
-]
-
-auto_check_on_join = true
-only_first_join = false
-join_check_delay_ticks = 60
-
-webhook_enabled = false
-webhook_url = ""
-
-timeout_ticks = 60
-log_clean_checks = true
-```
+Results are sent to Discord as embeds. Keep the webhook URL private.
 
 ## Enforcement
 
-This mod performs no kick, ban, damage, teleport, inventory modification, or other punitive action when a key is detected. Results are logged and can be sent to Discord.
+The mod does not kick, ban, damage, teleport, modify inventories, or execute punitive commands.
 
-The key-translation method is heuristic. A modified client can suppress or spoof the response. The probe itself uses a temporary client-side sign view, because opening the sign editor is part of the key-translation technique.
+The probe uses temporary client-side packets and intercepts the sign response before normal server sign handling. The server world is not modified by the probe.
 
 ## Build
 
-Requires Java 21 and Gradle:
+Java 21 + Gradle:
 
 ```bash
 gradle build
 ```
+
+Detection is heuristic because a modified client can suppress or spoof client-side resolution.
