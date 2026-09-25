@@ -22,6 +22,7 @@ public final class KeyCheckLoadingScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xA0101010);
+        super.render(graphics, mouseX, mouseY, partialTick);
         KeyCheckClient.render(graphics);
     }
 }

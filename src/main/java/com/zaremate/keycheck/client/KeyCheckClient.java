@@ -70,7 +70,7 @@ public final class KeyCheckClient {
         if (!blockingScreenRequested || !active) return;
 
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null || minecraft.player == null) return;
+        if (minecraft == null) return;
         if (minecraft.screen instanceof KeyCheckLoadingScreen) return;
 
         minecraft.setScreen(new KeyCheckLoadingScreen());
