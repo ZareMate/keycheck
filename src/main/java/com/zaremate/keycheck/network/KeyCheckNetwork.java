@@ -15,7 +15,7 @@ public final class KeyCheckNetwork {
                 .playToClient(
                         KeyCheckStatusPayload.TYPE,
                         KeyCheckStatusPayload.STREAM_CODEC,
-                        (payload, context) -> {}
+                        (payload, context) -> com.zaremate.keycheck.client.KeyCheckClient.handleStatus(payload)
                 );
     }
 }
