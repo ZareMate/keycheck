@@ -150,12 +150,37 @@ public final class KeyCheckEvents {
             );
         }
 
-        sign.setText(text, true);
+        /*
+         * Do not call SignBlockEntity#setText here.
+         * The temporary SignBlockEntity has no Level attached, and other server
+         * mods may inject into setText/markUpdated. Serialize the SignText
+         * directly instead, keeping the probe entirely client-side.
+         */
+        var encodedFront = SignText.DIRECT_CODEC.encodeStart(
+                net.minecraft.nbt.NbtOps.INSTANCE, text
+        );
 
-        // These packets modify only the checking client's local world state.
-        // The server world is never changed.
+        if (encodedFront.error().isPresent()) {
+            finish(session, "failed to encode sign text");
+            return;
+        }
+
+        net.minecraft.nbt.CompoundTag frontText =
+                (net.minecraft.nbt.CompoundTag) encodedFront.getOrThrow();
+
         player.connection.send(new ClientboundBlockUpdatePacket(pos, fakeSignState));
-        player.connection.send(ClientboundBlockEntityDataPacket.create(sign));
+        player.connection.send(ClientboundBlockEntityDataPacket.create(
+                sign,
+                (blockEntity, registries) -> {
+                    net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+                    tag.put("front_text", frontText.copy());
+                    tag.put("back_text", SignText.DIRECT_CODEC.encodeStart(
+                            net.minecraft.nbt.NbtOps.INSTANCE,
+                            new SignText()
+                    ).getOrThrow());
+                    return tag;
+                }
+        ));
         player.connection.send(new ClientboundOpenSignEditorPacket(pos, true));
 
         session.awaiting = true;
