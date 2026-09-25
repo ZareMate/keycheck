@@ -1,6 +1,6 @@
 # KeyCheck
 
-Server-side NeoForge 1.21.1 mod that probes client keybind translation keys.
+Server-side NeoForge 1.21.1 mod that probes client-side sign text resolution.
 
 ## Command
 
@@ -8,52 +8,54 @@ Server-side NeoForge 1.21.1 mod that probes client keybind translation keys.
 
 Requires permission level 2.
 
-The command does not kick, ban, damage, teleport, modify inventories, or otherwise punish the checked player.
+The checker does not kick, ban, damage, teleport, change inventories, or otherwise punish the player.
 
-## Discord webhook
+## Discord
 
-Set these values in `config/keycheck-common.toml`:
+Set:
 
 ```toml
 webhook_enabled = true
 webhook_url = "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
 ```
 
-The mod sends one Discord embed per completed or inconclusive check. The message contains the player name, UUID, result, and detected translation keys.
+Results are sent to Discord as CLEAN, DETECTED, or INCONCLUSIVE.
 
-Keep the webhook URL private.
-
-## Configuration
-
-NeoForge generates:
-
-`config/keycheck-common.toml`
-
-Default:
+## Probe configuration
 
 ```toml
 blacklisted_keys = [
-    "key.meteor-client.open-gui"
+    "key.meteor-client.open-gui",
+    "xray.config.toggle"
 ]
-
-webhook_enabled = false
-webhook_url = ""
-
-timeout_ticks = 60
-log_clean_checks = true
 ```
 
-Add one translation key per entry. The mod checks four probes at a time and automatically batches larger lists.
+Detection mode can be specified explicitly:
 
-## How the check works
+```toml
+blacklisted_keys = [
+    "METEOR:key.meteor-client.open-gui",
+    "KEYBIND:xray.config.toggle",
+    "TRANSLATE:some.translation.key"
+]
+```
 
-The server sends a fake sign block, sign data containing `Component.keybind(...)`, and a sign-editor-open packet to the checked client.
+For backwards compatibility, `key.meteor-client.open-gui` is automatically treated as METEOR. Other entries default to KEYBIND.
 
-The fake sign is never placed in the server world. Only the target client's local view is changed temporarily, and it is restored after the response.
+The original CheckHacks configuration uses `xray.config.toggle` as its XRay KEYBIND probe.
 
-The response packet is intercepted before normal vanilla sign handling, so the temporary sign is never saved or processed by the server.
+## Sign behavior
 
-The sign editor GUI may briefly appear on the checked client because that is part of the key-translation probe.
+The sign probe follows the CheckHacks layout:
+
+- lines 1-3: three configured probes
+- line 4: `key.forward` control probe
+
+For METEOR/TRANSLATE probes the sign uses a translation component with a fallback text. For KEYBIND probes it uses a keybind component.
+
+The server sends the fake sign data first, waits one tick, then sends OPEN SIGN EDITOR and immediately sends a client-only AIR block update. No sign is placed in the server world.
+
+The sign update packet is intercepted before normal vanilla sign processing.
 
 ## Build
 
@@ -63,6 +65,4 @@ Requires Java 21 and Gradle:
 gradle build
 ```
 
-## Detection
-
-This is a heuristic technique. A modified client can suppress or spoof keybind resolution, so a positive result should be treated as a signal for further investigation rather than absolute proof.
+Detection is heuristic because a modified client can suppress or spoof client-side text resolution.
