@@ -1,14 +1,10 @@
 package com.zaremate.keycheck.client;
 
-import com.zaremate.keycheck.network.KeyCheckConfigAckPayload;
-import com.zaremate.keycheck.network.KeyCheckConfigStartPayload;
 import com.zaremate.keycheck.network.KeyCheckStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 @EventBusSubscriber(modid = "keycheck", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckClient {
@@ -23,15 +19,6 @@ public final class KeyCheckClient {
     private static volatile long hideAtNanos;
 
     private KeyCheckClient() {}
-
-    @SubscribeEvent
-    public static void registerPayloads(RegisterClientPayloadHandlersEvent event) {
-        event.register(KeyCheckConfigStartPayload.TYPE, (payload, context) -> {
-            beginEarlyLoading();
-            context.reply(KeyCheckConfigAckPayload.INSTANCE);
-        });
-        event.register(KeyCheckStatusPayload.TYPE, (payload, context) -> handleStatus(payload));
-    }
 
     public static void handleStatus(KeyCheckStatusPayload payload) {
         active = payload.state() != KeyCheckStatusPayload.COMPLETE
@@ -162,7 +149,7 @@ public final class KeyCheckClient {
         }
     }
 
-    private static void beginEarlyLoading() {
+    public static void beginEarlyLoading() {
         active = true;
         earlyLoadingActive = true;
         blockingScreenRequested = true;
