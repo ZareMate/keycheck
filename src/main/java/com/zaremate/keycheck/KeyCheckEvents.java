@@ -168,19 +168,21 @@ public final class KeyCheckEvents {
             sendBatch(session);
     }
 
-        private static int startCheck(ServerPlayer target, ServerPlayer initiator) {
+        private static int startCheck(ServerPlayer target, net.minecraft.commands.CommandSourceStack commandSource) {
         if (SESSIONS.containsKey(target.getUUID())) {
+            if (commandSource != null) commandSource.sendFailure(Component.literal("KeyCheck is already checking " + target.getGameProfile().getName() + "."));
             LOGGER.info("[KeyCheck] {} is already being checked.", target.getGameProfile().getName());
             return 0;
         }
 
         List<KeyProbe> probes = KeyCheckConfig.blacklistedProbes();
         if (probes.isEmpty()) {
+            if (commandSource != null) commandSource.sendFailure(Component.literal("No blacklisted keys are configured."));
             LOGGER.warn("[KeyCheck] No blacklisted keys are configured.");
             return 0;
         }
 
-        CheckSession session = new CheckSession(target, initiator, probes);
+        CheckSession session = new CheckSession(target, commandSource, probes);
         SESSIONS.put(target.getUUID(), session);
 
         LOGGER.info("[KeyCheck] Checking {} for {} configured probe(s).",
