@@ -1,61 +1,63 @@
 # KeyCheck
 
-Server-side NeoForge 1.21.1 mod that probes client-side sign text resolution.
+Server-side NeoForge 1.21.1 mod that probes client keybind translation keys.
 
-## Command
+## Manual check
 
 `/keycheck <player>`
 
 Requires permission level 2.
 
-The checker does not kick, ban, damage, teleport, change inventories, or otherwise punish the player.
+## Automatic join checks
 
-## Discord
+Players can be checked automatically shortly after joining, similar to CheckHacks.
 
-Set:
+Configuration:
+
+```toml
+auto_check_on_join = true
+only_first_join = false
+join_check_delay_ticks = 60
+```
+
+- `auto_check_on_join`: run a check after login.
+- `only_first_join`: only automatically check each UUID once per server runtime.
+- `join_check_delay_ticks`: delay after login; 60 ticks is about 3 seconds.
+
+The automatic check uses the configured `blacklisted_keys` list.
+
+## Discord webhook
 
 ```toml
 webhook_enabled = true
 webhook_url = "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
 ```
 
-Results are sent to Discord as CLEAN, DETECTED, or INCONCLUSIVE.
+One Discord embed is sent for each completed or inconclusive check. Keep the webhook URL private.
 
-## Probe configuration
-
-```toml
-blacklisted_keys = [
-    "key.meteor-client.open-gui",
-    "xray.config.toggle"
-]
-```
-
-Detection mode can be specified explicitly:
+## Full default configuration
 
 ```toml
 blacklisted_keys = [
-    "METEOR:key.meteor-client.open-gui",
-    "KEYBIND:xray.config.toggle",
-    "TRANSLATE:some.translation.key"
+    "key.meteor-client.open-gui"
 ]
+
+auto_check_on_join = true
+only_first_join = false
+join_check_delay_ticks = 60
+
+webhook_enabled = false
+webhook_url = ""
+
+timeout_ticks = 60
+log_clean_checks = true
 ```
 
-For backwards compatibility, `key.meteor-client.open-gui` is automatically treated as METEOR. Other entries default to KEYBIND.
+## Enforcement
 
-The original CheckHacks configuration uses `xray.config.toggle` as its XRay KEYBIND probe.
+This mod performs no kick, ban, damage, teleport, inventory modification, or other punitive action when a key is detected. Results are logged and can be sent to Discord.
 
-## Sign behavior
-
-The sign probe follows the CheckHacks layout:
-
-- lines 1-3: three configured probes
-- line 4: `key.forward` control probe
-
-For METEOR/TRANSLATE probes the sign uses a translation component with a fallback text. For KEYBIND probes it uses a keybind component.
-
-The server sends the fake sign data first, waits one tick, then sends OPEN SIGN EDITOR and immediately sends a client-only AIR block update. No sign is placed in the server world.
-
-The sign update packet is intercepted before normal vanilla sign processing.
+The key-translation method is heuristic. A modified client can suppress or spoof the response. The probe itself uses a temporary client-side sign view, because opening the sign editor is part of the key-translation technique.
 
 ## Build
 
@@ -64,5 +66,3 @@ Requires Java 21 and Gradle:
 ```bash
 gradle build
 ```
-
-Detection is heuristic because a modified client can suppress or spoof client-side text resolution.
