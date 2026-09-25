@@ -66,9 +66,10 @@ public final class KeyCheckEvents {
             return;
         }
 
-        if (ThreadLocalRandom.current().nextInt(100) >= 10) {
-            LOGGER.debug("[KeyCheck] {} was not selected for the automatic 10% join check.",
-                    player.getGameProfile().getName());
+        int joinChance = KeyCheckConfig.JOIN_CHECK_CHANCE_PERCENT.get();
+        if (ThreadLocalRandom.current().nextInt(100) >= joinChance) {
+            LOGGER.debug("[KeyCheck] {} was not selected for the automatic {}% join check.",
+                    player.getGameProfile().getName(), joinChance);
             sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
