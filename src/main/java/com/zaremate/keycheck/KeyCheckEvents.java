@@ -155,11 +155,7 @@ public final class KeyCheckEvents {
         // These packets modify only the checking client's local world state.
         // The server world is never changed.
         player.connection.send(new ClientboundBlockUpdatePacket(pos, fakeSignState));
-        player.connection.send(new ClientboundBlockEntityDataPacket(
-                pos,
-                sign.getType(),
-                sign.getUpdateTag(player.registryAccess())
-        ));
+        player.connection.send(ClientboundBlockEntityDataPacket.create(sign));
         player.connection.send(new ClientboundOpenSignEditorPacket(pos, true));
 
         session.awaiting = true;
