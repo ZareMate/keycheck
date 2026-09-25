@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class KeyCheckEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -61,6 +62,13 @@ public final class KeyCheckEvents {
         if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get())) {
             LOGGER.info("[KeyCheck] Skipping automatic join check for {} due to LuckPerms permission '{}'.",
                     player.getGameProfile().getName(), KeyCheckConfig.JOIN_BYPASS_PERMISSION.get());
+            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+            return;
+        }
+
+        if (ThreadLocalRandom.current().nextInt(100) >= 10) {
+            LOGGER.debug("[KeyCheck] {} was not selected for the automatic 10% join check.",
+                    player.getGameProfile().getName());
             sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
