@@ -8,6 +8,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
+import net.neoforged.neoforge.network.PacketDistributor;
+import com.zaremate.keycheck.network.KeyCheckStatusPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -198,6 +200,7 @@ public final class KeyCheckEvents {
         LOGGER.info("[KeyCheck] Checking {} for {} configured probe(s).",
                 target.getGameProfile().getName(), probes.size());
 
+        sendClientStatus(session, KeyCheckStatusPayload.START);
         sendBatch(session);
         return 1;
     }
@@ -213,6 +216,7 @@ public final class KeyCheckEvents {
 
         session.pos = pos;
         session.originalState = player.serverLevel().getBlockState(pos);
+        sendClientStatus(session, KeyCheckStatusPayload.PROGRESS);
         session.originalBlockEntity = null;
 
         BlockState fakeSignState = Blocks.OAK_SIGN.defaultBlockState();
@@ -302,6 +306,10 @@ public final class KeyCheckEvents {
         session.finished = true;
         SESSIONS.remove(session.player.getUUID());
         restoreClientView(session);
+        sendClientStatus(session,
+                "complete".equals(reason)
+                        ? KeyCheckStatusPayload.COMPLETE
+                        : KeyCheckStatusPayload.FAILED);
 
         String name = session.player.getGameProfile().getName();
 
@@ -361,6 +369,23 @@ public final class KeyCheckEvents {
             );
             sendCommandResult(session, "INCONCLUSIVE", details);
             broadcastStaff(session, name + " — INCONCLUSIVE\n" + details);
+        }
+    }
+
+    private static void sendClientStatus(CheckSession session, int state) {
+        try {
+            PacketDistributor.sendToPlayer(
+                    session.player,
+                    new KeyCheckStatusPayload(
+                            state,
+                            session.index,
+                            session.probes.size(),
+                            session.detected.size(),
+                            session.protectedKeys.size()
+                    )
+            );
+        } catch (Throwable ignored) {
+            // The client overlay is optional; detection must continue without it.
         }
     }
 
