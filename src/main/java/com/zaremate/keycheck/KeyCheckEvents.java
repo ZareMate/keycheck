@@ -317,6 +317,7 @@ public final class KeyCheckEvents {
                         details.toString()
                 );
                 sendCommandResult(session, "DETECTED", details.toString());
+                broadcastStaff(name + " — DETECTED\n" + details);
             } else if (!session.protectedKeys.isEmpty()) {
                 String list = String.join("\n", session.protectedKeys);
                 LOGGER.info("[KeyCheck] {}: keybind probe protected for:\n{}", name, list);
@@ -328,11 +329,13 @@ public final class KeyCheckEvents {
                         details
                 );
                 sendCommandResult(session, "INCONCLUSIVE", details);
+                broadcastStaff(name + " — INCONCLUSIVE\n" + details);
             } else {
                 if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
                     LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected.", name);
                 String details = "No configured blacklisted keybinds were resolved.";
                 sendCommandResult(session, "CLEAN", details);
+                broadcastStaff(name + " — CLEAN\n" + details);
                 // Automatic clean join checks intentionally do not generate Discord messages.
                 if (session.commandSource != null) {
                     DiscordWebhook.send(
@@ -353,6 +356,7 @@ public final class KeyCheckEvents {
                     details
             );
             sendCommandResult(session, "INCONCLUSIVE", details);
+            broadcastStaff(name + " — INCONCLUSIVE\n" + details);
         }
     }
 
@@ -363,6 +367,18 @@ public final class KeyCheckEvents {
                         + " — " + status + " — " + details),
                 false
         );
+    }
+
+    private static void broadcastStaff(String message) {
+        Component component = Component.literal("[KeyCheck] " + message);
+        for (ServerPlayer player : SESSIONS.values().stream()
+                .map(session -> session.player.server.getPlayerList().getPlayers())
+                .findFirst().orElse(List.of())) {
+            if (player.hasPermissions(3)
+                    || LuckPermsPermissions.hasPermission(player, KeyCheckConfig.BROADCAST_PERMISSION.get())) {
+                player.sendSystemMessage(component);
+            }
+        }
     }
 
     private static void restoreClientView(CheckSession session) {
