@@ -29,6 +29,7 @@ public final class KeyCheckClient {
         if (payload.state() == KeyCheckStatusPayload.ANNOUNCEMENT) {
             airportUntilNanos = System.nanoTime() + 2_000_000_000L;
             blockingScreenRequested = true;
+            openBlockingScreen();
         }
         completed = payload.completed();
         total = payload.total();
@@ -59,8 +60,13 @@ public final class KeyCheckClient {
         graphics.fill(left, top, left + boxWidth, top + 4, 0xFF35C7FF);
         graphics.fill(left, top + 4, left + boxWidth, top + 8, 0xFFFFC857);
 
-        graphics.drawCenteredString(minecraft.font, "✈  AIRPORT SECURITY", width / 2, top + 24, 0xFFFFFFFF);
-        graphics.drawCenteredString(minecraft.font, "CHECK INCOMING", width / 2, top + 48, 0xFFFFC857);
+        graphics.pose().pushPose();
+        graphics.pose().translate(width / 2.0f, top + 18.0f, 0);
+        graphics.pose().scale(1.7f, 1.7f, 1.0f);
+        graphics.drawCenteredString(minecraft.font, "AIRPORT SECURITY", 0, 0, 0xFFFFFFFF);
+        graphics.pose().popPose();
+
+        graphics.drawCenteredString(minecraft.font, "CHECK INCOMING", width / 2, top + 52, 0xFFFFC857);
         graphics.drawCenteredString(minecraft.font, "Please remain connected", width / 2, top + 84, 0xFFE5EAF0);
         graphics.drawCenteredString(minecraft.font, "Your client will be verified before entry", width / 2, top + 102, 0xFF9FB0C2);
 
@@ -210,6 +216,12 @@ public final class KeyCheckClient {
         airportUntilNanos = System.nanoTime() + 2_000_000_000L;
     }
 
+
+    private static void openBlockingScreen() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft != null && !(minecraft.screen instanceof KeyCheckLoadingScreen))
+            minecraft.setScreen(new KeyCheckLoadingScreen());
+    }
 
     private static void closeBlockingScreen() {
         Minecraft minecraft = Minecraft.getInstance();
