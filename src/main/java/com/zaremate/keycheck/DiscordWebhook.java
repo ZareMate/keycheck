@@ -17,9 +17,10 @@ public final class DiscordWebhook {
         String url = KeyCheckConfig.webhookUrl();
         if (!KeyCheckConfig.WEBHOOK_ENABLED.get() || url.isBlank()) return;
 
-        String description = "Player: **" + escapeMarkdown(player) + "**\\n"
-                + "UUID: " + escapeMarkdown(uuid) + "\\n"
-                + "Status: **" + escapeMarkdown(status) + "**\\n\\n"
+        String safeStatus = escapeMarkdown(status);
+        String description = "Player: **" + escapeMarkdown(player) + "**\n"
+                + "UUID: `" + escapeMarkdown(uuid) + "`\n"
+                + "Status: **" + safeStatus + "**\n\n"
                 + escapeMarkdown(details);
 
         String json = "{"
@@ -27,7 +28,7 @@ public final class DiscordWebhook {
                 + "\"embeds\":[{"
                 + "\"title\":\"KeyCheck result\","
                 + "\"description\":\"" + escapeJson(description) + "\","
-                + "\"color\":" + (status.equals("DETECTED") ? 15158332 : 3066993)
+                + "\"color\":" + colorFor(status)
                 + "}]"
                 + "}";
 
@@ -52,6 +53,14 @@ public final class DiscordWebhook {
         }
     }
 
+    private static int colorFor(String status) {
+        return switch (status.toUpperCase()) {
+            case "DETECTED" -> 15158332;
+            case "INCONCLUSIVE" -> 16776960;
+            default -> 3066993;
+        };
+    }
+
     private static String escapeJson(String value) {
         return value.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
@@ -63,6 +72,7 @@ public final class DiscordWebhook {
     private static String escapeMarkdown(String value) {
         return value.replace("\\", "\\\\")
                 .replace("*", "\\*")
-                .replace("_", "\\_");
+                .replace("_", "\\_")
+                .replace("`", "\\`");
     }
 }
