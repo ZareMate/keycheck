@@ -5,12 +5,14 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -32,7 +34,7 @@ public final class KeyCheckEvents {
     public static void onCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(
                 Commands.literal("keycheck")
-                        .requires(s -> s.hasPermission(2))
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("player",
                                 net.minecraft.commands.arguments.EntityArgument.player())
                                 .executes(ctx -> {
@@ -42,11 +44,6 @@ public final class KeyCheckEvents {
                                             ctx.getSource().getEntity() instanceof ServerPlayer p ? p : null;
                                     return startCheck(target, initiator);
                                 }))
-                        .executes(ctx -> {
-                            ctx.getSource().sendSuccess(
-                                    () -> Component.literal("Usage: /keycheck <player>"), false);
-                            return 0;
-                        })
         );
     }
 
@@ -54,7 +51,7 @@ public final class KeyCheckEvents {
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             CheckSession session = SESSIONS.remove(player.getUUID());
-            if (session != null) restore(session);
+            if (session != null) finish(session, "logout");
         }
     }
 
@@ -93,7 +90,7 @@ public final class KeyCheckEvents {
                 session.detected.add(batch.get(i));
         }
 
-        restore(session);
+        restoreClientView(session);
         session.index += batch.size();
 
         if (session.index >= session.keys.size())
@@ -104,21 +101,22 @@ public final class KeyCheckEvents {
 
     private static int startCheck(ServerPlayer target, ServerPlayer initiator) {
         if (SESSIONS.containsKey(target.getUUID())) {
-            notify(initiator, "KeyCheck is already checking " + target.getGameProfile().getName() + ".");
+            LOGGER.info("[KeyCheck] {} is already being checked.", target.getGameProfile().getName());
             return 0;
         }
 
         List<String> keys = KeyCheckConfig.blacklistedKeys();
         if (keys.isEmpty()) {
-            notify(initiator, "No blacklisted keys are configured.");
+            LOGGER.warn("[KeyCheck] No blacklisted keys are configured.");
             return 0;
         }
 
         CheckSession session = new CheckSession(target, initiator, keys);
         SESSIONS.put(target.getUUID(), session);
 
-        notify(initiator, "Checking " + target.getGameProfile().getName()
-                + " for " + keys.size() + " blacklisted keybind(s).");
+        LOGGER.info("[KeyCheck] Checking {} for {} blacklisted keybind(s).",
+                target.getGameProfile().getName(), keys.size());
+
         sendBatch(session);
         return 1;
     }
@@ -128,21 +126,17 @@ public final class KeyCheckEvents {
         BlockPos pos = findAir(player);
 
         if (pos == null) {
-            finish(session, "no suitable sign position");
+            finish(session, "no suitable client-only sign position");
             return;
         }
 
         session.pos = pos;
         session.originalState = player.serverLevel().getBlockState(pos);
-        session.originalBlockEntity = player.serverLevel().getBlockEntity(pos);
+        session.originalBlockEntity = null;
 
-        player.serverLevel().setBlock(pos, Blocks.OAK_SIGN.defaultBlockState(), 3);
-
-        BlockEntity blockEntity = player.serverLevel().getBlockEntity(pos);
-        if (!(blockEntity instanceof SignBlockEntity sign)) {
-            finish(session, "failed to create sign");
-            return;
-        }
+        BlockState fakeSignState = Blocks.OAK_SIGN.defaultBlockState();
+        SignBlockEntity sign = new SignBlockEntity(pos, fakeSignState);
+        SignText text = new SignText();
 
         List<String> batch = session.keys.subList(
                 session.index,
@@ -150,15 +144,22 @@ public final class KeyCheckEvents {
         );
 
         for (int i = 0; i < LINES_PER_BATCH; i++) {
-            sign.setText(
-                    i < batch.size() ? Component.keybind(batch.get(i)) : Component.empty(),
-                    i
+            text = text.setMessage(
+                    i,
+                    i < batch.size() ? Component.keybind(batch.get(i)) : Component.empty()
             );
         }
-        sign.setChanged();
 
+        sign.setText(text, true);
+
+        // These packets modify only the checking client's local world state.
+        // The server world is never changed.
+        player.connection.send(new ClientboundBlockUpdatePacket(pos, fakeSignState));
         player.connection.send(new ClientboundBlockEntityDataPacket(
-                pos, sign.getType(), sign.getUpdateTag(player.registryAccess())));
+                pos,
+                sign.getType(),
+                sign.getUpdateTag(player.registryAccess())
+        ));
         player.connection.send(new ClientboundOpenSignEditorPacket(pos, true));
 
         session.awaiting = true;
@@ -171,34 +172,48 @@ public final class KeyCheckEvents {
 
         session.finished = true;
         SESSIONS.remove(session.player.getUUID());
-        restore(session);
+        restoreClientView(session);
 
         String name = session.player.getGameProfile().getName();
 
-        if (session.detected.isEmpty()) {
-            if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
-                LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected ({})", name, reason);
-            notify(session.initiator,
-                    "KeyCheck: " + name + " — no blacklisted keybinds detected.");
+        if ("complete".equals(reason)) {
+            if (session.detected.isEmpty()) {
+                if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
+                    LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected.", name);
+                DiscordWebhook.send(
+                        name,
+                        session.player.getUUID().toString(),
+                        "CLEAN",
+                        "No configured blacklisted keybinds were resolved."
+                );
+            } else {
+                String list = String.join("\n", session.detected);
+                LOGGER.warn("[KeyCheck] {}: detected blacklisted keybinds:\n{}", name, list);
+                DiscordWebhook.send(
+                        name,
+                        session.player.getUUID().toString(),
+                        "DETECTED",
+                        "Detected keybinds:\n" + list
+                );
+            }
         } else {
-            String list = String.join(", ", session.detected);
-            LOGGER.warn("[KeyCheck] {}: detected {}", name, list);
-            notify(session.initiator, "KeyCheck: " + name + " — DETECTED: " + list);
+            LOGGER.info("[KeyCheck] {}: check ended ({})", name, reason);
+            DiscordWebhook.send(
+                    name,
+                    session.player.getUUID().toString(),
+                    "INCONCLUSIVE",
+                    "The client did not provide a usable response. Reason: " + reason
+            );
         }
     }
 
-    private static void restore(CheckSession session) {
+    private static void restoreClientView(CheckSession session) {
         if (session.pos == null) return;
 
-        try {
-            session.player.serverLevel().setBlock(
-                    session.pos, session.originalState, 3);
-
-            if (session.originalBlockEntity != null)
-                session.player.serverLevel().setBlockEntity(session.originalBlockEntity);
-        } catch (Exception e) {
-            LOGGER.warn("[KeyCheck] Failed to restore sign at {}", session.pos, e);
-        }
+        // Restore only the checking client's local block view.
+        session.player.connection.send(
+                new ClientboundBlockUpdatePacket(session.pos, session.originalState)
+        );
 
         session.pos = null;
     }
@@ -206,18 +221,13 @@ public final class KeyCheckEvents {
     private static BlockPos findAir(ServerPlayer player) {
         BlockPos base = player.blockPosition();
 
-        for (int dy = 1; dy <= 5; dy++) {
+        for (int dy = 2; dy <= 6; dy++) {
             BlockPos pos = base.above(dy);
             if (player.serverLevel().getBlockState(pos).isAir())
                 return pos;
         }
 
         return null;
-    }
-
-    private static void notify(ServerPlayer player, String message) {
-        if (player != null)
-            player.sendSystemMessage(Component.literal(message));
     }
 
     static final class CheckSession {
