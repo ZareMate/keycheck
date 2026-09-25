@@ -34,6 +34,7 @@ configurations {
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
+    compileOnly "net.luckperms:api:5.5"
 }
 
 tasks.withType(ProcessResources).configureEach {
