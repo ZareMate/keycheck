@@ -20,6 +20,14 @@ public final class KeyCheckConfig {
                     value -> value instanceof String s && !s.isBlank()
             );
 
+    public static final ModConfigSpec.ConfigValue<String> COMMAND_PERMISSION =
+            BUILDER.comment("LuckPerms permission required to use /keycheck.")
+                    .define("command_permission", "keycheck.command");
+
+    public static final ModConfigSpec.ConfigValue<String> JOIN_BYPASS_PERMISSION =
+            BUILDER.comment("LuckPerms permission that exempts a player from automatic join checks.")
+                    .define("join_bypass_permission", "keycheck.join.bypass");
+
     public static final ModConfigSpec.BooleanValue AUTO_CHECK_ON_JOIN =
             BUILDER.comment("Automatically check players after they join the server.")
                     .define("auto_check_on_join", true);
