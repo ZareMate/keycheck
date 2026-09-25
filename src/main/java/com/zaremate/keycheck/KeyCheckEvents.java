@@ -242,8 +242,7 @@ public final class KeyCheckEvents {
     private static void showAirportTitle(ServerPlayer target) {
         try {
             var source = target.createCommandSourceStack()
-                    .withPermission(4)
-                    .withSilent();
+                    .withPermission(4);
 
             target.server.getCommands().performPrefixedCommand(
                     source,
