@@ -44,9 +44,7 @@ public final class KeyCheckEvents {
                                 .executes(ctx -> {
                                     ServerPlayer target =
                                             net.minecraft.commands.arguments.EntityArgument.getPlayer(ctx, "player");
-                                    ServerPlayer initiator =
-                                            ctx.getSource().getEntity() instanceof ServerPlayer p ? p : null;
-                                    return startCheck(target, initiator);
+                                    return startCheck(target, ctx.getSource());
                                 }))
         );
     }
@@ -311,6 +309,7 @@ public final class KeyCheckEvents {
                         "DETECTED",
                         details.toString()
                 );
+                sendCommandResult(session, "DETECTED", details.toString());
             } else if (!session.protectedKeys.isEmpty()) {
                 String list = String.join("\n", session.protectedKeys);
                 LOGGER.info("[KeyCheck] {}: keybind probe protected for:\n{}", name, list);
@@ -323,22 +322,42 @@ public final class KeyCheckEvents {
             } else {
                 if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
                     LOGGER.info("[KeyCheck] {}: no blacklisted keybinds detected.", name);
-                DiscordWebhook.send(
-                        name,
-                        session.player.getUUID().toString(),
-                        "CLEAN",
-                        "No configured blacklisted keybinds were resolved."
-                );
+                if (session.commandSource != null) {
+                    sendCommandResult(session, "CLEAN", "No configured blacklisted keybinds were resolved.");
+                } else {
+                    // Automatic clean checks intentionally do not generate Discord messages.
+                }
+                if (session.commandSource == null) {
+                    // No webhook for a clean automatic join check.
+                } else {
+                    DiscordWebhook.send(
+                            name,
+                            session.player.getUUID().toString(),
+                            "CLEAN",
+                            "No configured blacklisted keybinds were resolved."
+                    );
+                }
             }
         } else {
             LOGGER.info("[KeyCheck] {}: check ended ({})", name, reason);
+            String details = "The client did not provide a usable response. Reason: " + reason;
             DiscordWebhook.send(
                     name,
                     session.player.getUUID().toString(),
                     "INCONCLUSIVE",
-                    "The client did not provide a usable response. Reason: " + reason
+                    details
             );
+            sendCommandResult(session, "INCONCLUSIVE", details);
         }
+    }
+
+    private static void sendCommandResult(CheckSession session, String status, String details) {
+        if (session.commandSource == null) return;
+        session.commandSource.sendSuccess(
+                () -> Component.literal("KeyCheck: " + session.player.getGameProfile().getName()
+                        + " — " + status + " — " + details),
+                false
+        );
     }
 
     private static void restoreClientView(CheckSession session) {
@@ -366,7 +385,7 @@ public final class KeyCheckEvents {
 
     static final class CheckSession {
         final ServerPlayer player;
-        final ServerPlayer initiator;
+        final net.minecraft.commands.CommandSourceStack commandSource;
         final List<KeyProbe> probes;
         final Set<String> detected = new LinkedHashSet<>();
         final Set<String> protectedKeys = new LinkedHashSet<>();
@@ -380,9 +399,9 @@ public final class KeyCheckEvents {
         boolean awaiting;
         boolean finished;
 
-        CheckSession(ServerPlayer player, ServerPlayer initiator, List<KeyProbe> probes) {
+        CheckSession(ServerPlayer player, net.minecraft.commands.CommandSourceStack commandSource, List<KeyProbe> probes) {
             this.player = player;
-            this.initiator = initiator;
+            this.commandSource = commandSource;
             this.probes = List.copyOf(probes);
         }
     }
