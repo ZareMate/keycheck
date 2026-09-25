@@ -18,6 +18,14 @@ public final class KeyCheckConfig {
                     value -> value instanceof String s && !s.isBlank()
             );
 
+    public static final ModConfigSpec.BooleanValue WEBHOOK_ENABLED =
+            BUILDER.comment("Send every completed check result to Discord.")
+                    .define("webhook_enabled", false);
+
+    public static final ModConfigSpec.ConfigValue<String> WEBHOOK_URL =
+            BUILDER.comment("Discord webhook URL. Keep this private.")
+                    .define("webhook_url", "");
+
     public static final ModConfigSpec.IntValue TIMEOUT_TICKS =
             BUILDER.comment("Ticks to wait for a client response for each batch.")
                     .defineInRange("timeout_ticks", 60, 10, 200);
@@ -35,5 +43,9 @@ public final class KeyCheckConfig {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
+    }
+
+    public static String webhookUrl() {
+        return WEBHOOK_URL.get().trim();
     }
 }
