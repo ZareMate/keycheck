@@ -205,16 +205,6 @@ public final class KeyCheckClient {
         airportUntilNanos = System.nanoTime() + 2_000_000_000L;
     }
 
-        active = true;
-        earlyLoadingActive = true;
-        blockingScreenRequested = true;
-        state = KeyCheckStatusPayload.START;
-        completed = 0;
-        total = 0;
-        detected = 0;
-        protectedCount = 0;
-        hideAtNanos = 0;
-    }
 
     private static void closeBlockingScreen() {
         Minecraft minecraft = Minecraft.getInstance();
