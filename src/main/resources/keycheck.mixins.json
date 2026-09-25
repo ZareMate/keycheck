@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ServerGamePacketListenerImplMixin",
-    "SignBlockEntityAccessor"
+    "SignBlockEntityAccessor",
+    "ServerCommonPacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1
