@@ -18,6 +18,18 @@ public final class KeyCheckConfig {
                     value -> value instanceof String s && !s.isBlank()
             );
 
+    public static final ModConfigSpec.BooleanValue AUTO_CHECK_ON_JOIN =
+            BUILDER.comment("Automatically check players after they join the server.")
+                    .define("auto_check_on_join", true);
+
+    public static final ModConfigSpec.BooleanValue ONLY_FIRST_JOIN =
+            BUILDER.comment("When enabled, automatically check each UUID only once while the server is running.")
+                    .define("only_first_join", false);
+
+    public static final ModConfigSpec.IntValue JOIN_CHECK_DELAY_TICKS =
+            BUILDER.comment("Ticks to wait after a player joins before starting the automatic check.")
+                    .defineInRange("join_check_delay_ticks", 60, 0, 1200);
+
     public static final ModConfigSpec.BooleanValue WEBHOOK_ENABLED =
             BUILDER.comment("Send every completed check result to Discord.")
                     .define("webhook_enabled", false);
@@ -42,13 +54,6 @@ public final class KeyCheckConfig {
         return BLACKLISTED_KEYS.get().stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .toList();
-    }
-
-    public static List<KeyProbe> blacklistedProbes() {
-        return blacklistedKeys().stream()
-                .map(KeyProbe::parse)
-                .filter(probe -> !probe.key().isBlank())
                 .toList();
     }
 
