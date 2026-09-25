@@ -29,6 +29,12 @@ public record KeyProbe(String key, Mode mode) {
         if (value.equalsIgnoreCase("key.meteor-client.open-gui"))
             return new KeyProbe(value, Mode.METEOR);
 
+        // Advanced XRay exposes these as translation keys, not keybind names.
+        if (value.equalsIgnoreCase("xray.debug.init")
+                || value.equalsIgnoreCase("xray.overlay")) {
+            return new KeyProbe(value, Mode.TRANSLATE);
+        }
+
         return new KeyProbe(value, Mode.KEYBIND);
     }
 
