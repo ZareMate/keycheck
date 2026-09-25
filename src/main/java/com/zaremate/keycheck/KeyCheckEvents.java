@@ -88,8 +88,7 @@ public final class KeyCheckEvents {
             if (player != null && player.isAlive() && !SESSIONS.containsKey(uuid)) {
                 startCheck(player, null);
             } else if (player != null) {
-                releaseLoadingScreen(player);
-            }
+                }
         }
 
         for (CheckSession session : new ArrayList<>(SESSIONS.values())) {
@@ -190,7 +189,6 @@ public final class KeyCheckEvents {
         if (probes.isEmpty()) {
             if (commandSource != null) commandSource.sendFailure(Component.literal("No blacklisted keys are configured."));
             LOGGER.warn("[KeyCheck] No blacklisted keys are configured.");
-            releaseLoadingScreen(target);
             return 0;
         }
 
