@@ -394,6 +394,7 @@ public final class AirportSecuritySystemEvents {
                 );
                 sendCommandResult(session, "DETECTED", details.toString());
                 broadcastStaff(session, name + " — DETECTED\n" + details);
+                AdminNotesIntegration.recordCheckResult(session.player.getUUID(), session.detected);
             } else if (!session.protectedKeys.isEmpty()) {
                 String list = String.join("\n", session.protectedKeys);
                 LOGGER.info("[Airport Security System] {}: keybind probe protected for:\n{}", name, list);
@@ -411,6 +412,7 @@ public final class AirportSecuritySystemEvents {
                     LOGGER.info("[Airport Security System] {}: no blacklisted keybinds detected.", name);
                 String details = "No configured blacklisted keybinds were resolved.";
                 sendCommandResult(session, "CLEAN", details);
+                AdminNotesIntegration.recordCheckResult(session.player.getUUID(), Set.of());
                 // Clean checks are only logged/returned to the command sender; they are not broadcast.
                 if (session.commandSource != null) {
                     DiscordWebhook.send(
