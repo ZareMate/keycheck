@@ -10,4 +10,4 @@ authors="ZareMate"
 description='''Server-side client verification for NeoForge.'''
 
 [[mixins]]
-config="keycheck.mixins.json"
+config="airport_security_system.mixins.json"
