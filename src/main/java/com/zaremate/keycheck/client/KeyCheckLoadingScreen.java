@@ -4,8 +4,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-public final class KeyCheckLoadingScreen extends Screen {
-    public KeyCheckLoadingScreen() {
+public final class AirportSecuritySystemLoadingScreen extends Screen {
+    public AirportSecuritySystemLoadingScreen() {
         super(Component.literal("Airport Security System"));
     }
 
@@ -22,6 +22,6 @@ public final class KeyCheckLoadingScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        KeyCheckClient.render(graphics);
+        AirportSecuritySystemClient.render(graphics);
     }
 }
