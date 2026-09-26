@@ -10,11 +10,9 @@ import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.neoforged.neoforge.network.PacketDistributor;
 import com.zaremate.airport_security_system.network.AirportSecuritySystemStatusPayload;
-import com.zaremate.airport_security_system.network.AirportSecuritySystemConfigStartPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.state.BlockState;
 import com.zaremate.airport_security_system.mixin.SignBlockEntityAccessor;
@@ -99,7 +97,7 @@ public final class AirportSecuritySystemEvents {
         sendClientStatus(player, AirportSecuritySystemStatusPayload.START, 0, joinProbes.size(), 0, 0);
 
         PENDING_JOIN_CHECKS.put(uuid,
-                player.server.getTickCount() + automaticJoinDelay(player));
+                player.server.getTickCount() + AirportSecuritySystemConfig.JOIN_CHECK_DELAY_TICKS.get());
     }
 
     @SubscribeEvent
@@ -283,7 +281,6 @@ public final class AirportSecuritySystemEvents {
         session.pos = pos;
         session.originalState = player.serverLevel().getBlockState(pos);
         sendClientStatus(session, AirportSecuritySystemStatusPayload.PROGRESS);
-        session.originalBlockEntity = null;
 
         BlockState fakeSignState = Blocks.OAK_SIGN.defaultBlockState();
         SignBlockEntity sign = new SignBlockEntity(pos, fakeSignState);
@@ -467,10 +464,6 @@ public final class AirportSecuritySystemEvents {
         }
     }
 
-    private static int automaticJoinDelay(ServerPlayer player) {
-        return AirportSecuritySystemConfig.JOIN_CHECK_DELAY_TICKS.get();
-    }
-
     private static void sendCommandResult(CheckSession session, String status, String details) {
         if (session.commandSource == null) return;
         session.commandSource.sendSuccess(
@@ -526,7 +519,6 @@ public final class AirportSecuritySystemEvents {
         int timeoutTick;
         BlockPos pos;
         BlockState originalState;
-        BlockEntity originalBlockEntity;
         boolean awaiting;
         boolean finished;
 
