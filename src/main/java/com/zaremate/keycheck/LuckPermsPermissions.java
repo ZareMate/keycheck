@@ -1,4 +1,4 @@
-package com.zaremate.airport_security_system_system;
+package com.zaremate.airport_security_system;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
