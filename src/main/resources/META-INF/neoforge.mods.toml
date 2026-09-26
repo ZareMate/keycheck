@@ -3,9 +3,9 @@ loaderVersion="[1,)"
 license="MIT"
 
 [[mods]]
-modId="airport_security"
+modId="airport_security_system"
 version="1.0.0"
-displayName="Airport Security"
+displayName="Airport Security System"
 authors="ZareMate"
 description='''Server-side client verification for NeoForge.'''
 
