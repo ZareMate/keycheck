@@ -1,4 +1,4 @@
-package com.zaremate.airport_security.client;
+package com.zaremate.airport_security_system_system.client;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -7,7 +7,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
-@EventBusSubscriber(modid = "airport_security", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class KeyCheckClientGame {
     private KeyCheckClientGame() {}
 
