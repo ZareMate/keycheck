@@ -1,4 +1,4 @@
-package com.zaremate.keycheck;
+package com.zaremate.airport_security;
 
 import com.mojang.logging.LogUtils;
 import java.net.URI;
@@ -24,9 +24,9 @@ public final class DiscordWebhook {
                 + escapeMarkdown(details);
 
         String json = "{"
-                + "\"username\":\"KeyCheck\","
+                + "\"username\":\"Airport Security\","
                 + "\"embeds\":[{"
-                + "\"title\":\"KeyCheck result\","
+                + "\"title\":\"Airport Security result\","
                 + "\"description\":\"" + escapeJson(description) + "\","
                 + "\"color\":" + colorFor(status)
                 + "}]"
@@ -42,14 +42,14 @@ public final class DiscordWebhook {
             CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                     .thenAccept(response -> {
                         if (response.statusCode() < 200 || response.statusCode() >= 300)
-                            LOGGER.warn("[KeyCheck] Discord webhook returned HTTP {}", response.statusCode());
+                            LOGGER.warn("[Airport Security] Discord webhook returned HTTP {}", response.statusCode());
                     })
                     .exceptionally(error -> {
-                        LOGGER.warn("[KeyCheck] Discord webhook failed: {}", error.getMessage());
+                        LOGGER.warn("[Airport Security] Discord webhook failed: {}", error.getMessage());
                         return null;
                     });
         } catch (Exception e) {
-            LOGGER.warn("[KeyCheck] Invalid Discord webhook URL: {}", e.getMessage());
+            LOGGER.warn("[Airport Security] Invalid Discord webhook URL: {}", e.getMessage());
         }
     }
 
