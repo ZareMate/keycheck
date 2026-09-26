@@ -7,14 +7,14 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
-@Mod(KeyCheck.MOD_ID)
-public final class KeyCheck {
+@Mod(AirportSecuritySystem.MOD_ID)
+public final class AirportSecuritySystem {
     public static final String MOD_ID = "airport_security_system";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public KeyCheck(ModContainer container) {
-        container.registerConfig(ModConfig.Type.COMMON, KeyCheckConfig.SPEC);
-        NeoForge.EVENT_BUS.register(KeyCheckEvents.class);
+    public AirportSecuritySystem(ModContainer container) {
+        container.registerConfig(ModConfig.Type.COMMON, AirportSecuritySystemConfig.SPEC);
+        NeoForge.EVENT_BUS.register(AirportSecuritySystemEvents.class);
         LOGGER.info("Airport Security System loaded.");
     }
 }
