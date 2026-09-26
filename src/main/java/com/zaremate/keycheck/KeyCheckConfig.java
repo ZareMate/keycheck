@@ -80,7 +80,7 @@ public final class KeyCheckConfig {
 
     public static final ModConfigSpec.IntValue JOIN_CHECK_DELAY_TICKS =
             BUILDER.comment("Ticks to wait after a player joins before starting the automatic check.")
-                    .defineInRange("join_check_delay_ticks", 60, 0, 1200);
+                    .defineInRange("join_check_delay_ticks", 40, 0, 1200);
 
     public static final ModConfigSpec.BooleanValue WEBHOOK_ENABLED =
             BUILDER.comment("Send every completed check result to Discord.")
@@ -92,7 +92,7 @@ public final class KeyCheckConfig {
 
     public static final ModConfigSpec.IntValue TIMEOUT_TICKS =
             BUILDER.comment("Ticks to wait for a client response for each batch.")
-                    .defineInRange("timeout_ticks", 60, 10, 200);
+                    .defineInRange("timeout_ticks", 120, 10, 200);
 
     public static final ModConfigSpec.BooleanValue LOG_CLEAN_CHECKS =
             BUILDER.comment("Log checks that found no blacklisted keybinds.")
