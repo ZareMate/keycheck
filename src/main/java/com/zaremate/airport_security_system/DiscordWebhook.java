@@ -14,8 +14,8 @@ public final class DiscordWebhook {
     private DiscordWebhook() {}
 
     public static void send(String player, String uuid, String status, String details) {
-        String url = KeyCheckConfig.webhookUrl();
-        if (!KeyCheckConfig.WEBHOOK_ENABLED.get() || url.isBlank()) return;
+        String url = AirportSecuritySystemConfig.webhookUrl();
+        if (!AirportSecuritySystemConfig.WEBHOOK_ENABLED.get() || url.isBlank()) return;
 
         String safeStatus = escapeMarkdown(status);
         String description = "Player: **" + escapeMarkdown(player) + "**\n"
