@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 
 @Mod(KeyCheck.MOD_ID)
 public final class KeyCheck {
-    public static final String MOD_ID = "keycheck";
+    public static final String MOD_ID = "airport_security";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public KeyCheck(ModContainer container) {
