@@ -55,7 +55,7 @@ public final class KeyCheckConfig {
             );
 
     public static final ModConfigSpec.ConfigValue<String> COMMAND_PERMISSION =
-            BUILDER.comment("LuckPerms permission required to use /keycheck.")
+            BUILDER.comment("LuckPerms permission required to use /airport_security.")
                     .define("command_permission", "airport_security.command");
 
     public static final ModConfigSpec.ConfigValue<String> JOIN_BYPASS_PERMISSION =
@@ -63,7 +63,7 @@ public final class KeyCheckConfig {
                     .define("join_bypass_permission", "airport_security.join.bypass");
 
     public static final ModConfigSpec.ConfigValue<String> BROADCAST_PERMISSION =
-            BUILDER.comment("LuckPerms permission that allows receiving KeyCheck result broadcasts.")
+            BUILDER.comment("LuckPerms permission that allows receiving Airport Security result broadcasts.")
                     .define("broadcast_permission", "airport_security.alerts");
 
     public static final ModConfigSpec.BooleanValue AUTO_CHECK_ON_JOIN =
