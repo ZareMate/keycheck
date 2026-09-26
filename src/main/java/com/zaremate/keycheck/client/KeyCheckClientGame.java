@@ -1,4 +1,4 @@
-package com.zaremate.airport_security_system_system.client;
+package com.zaremate.airport_security_system.client;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
