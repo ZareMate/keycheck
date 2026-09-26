@@ -7,7 +7,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
-@EventBusSubscriber(modid = "airport_security", bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "airport_security_system", bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckNetwork {
     private KeyCheckNetwork() {}
 
