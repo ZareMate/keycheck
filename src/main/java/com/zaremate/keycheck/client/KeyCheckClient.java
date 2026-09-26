@@ -1,6 +1,6 @@
 package com.zaremate.airport_security_system.client;
 
-import com.zaremate.airport_security_system.network.KeyCheckStatusPayload;
+import com.zaremate.airport_security_system.network.AirportSecuritySystemStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -8,7 +8,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
-public final class KeyCheckClient {
+public final class AirportSecuritySystemClient {
     private static volatile boolean active;
     private static volatile boolean earlyLoadingActive;
     private static volatile boolean blockingScreenRequested;
@@ -20,14 +20,14 @@ public final class KeyCheckClient {
     private static volatile long hideAtNanos;
     private static volatile long airportUntilNanos;
 
-    private KeyCheckClient() {}
+    private AirportSecuritySystemClient() {}
 
-    public static void handleStatus(KeyCheckStatusPayload payload) {
-        active = payload.state() != KeyCheckStatusPayload.COMPLETE
-                && payload.state() != KeyCheckStatusPayload.FAILED;
+    public static void handleStatus(AirportSecuritySystemStatusPayload payload) {
+        active = payload.state() != AirportSecuritySystemStatusPayload.COMPLETE
+                && payload.state() != AirportSecuritySystemStatusPayload.FAILED;
         state = payload.state();
 
-        if (payload.state() == KeyCheckStatusPayload.ANNOUNCEMENT) {
+        if (payload.state() == AirportSecuritySystemStatusPayload.ANNOUNCEMENT) {
             airportUntilNanos = System.nanoTime() + 2_000_000_000L;
             blockingScreenRequested = true;
             openBlockingScreen();
@@ -37,7 +37,7 @@ public final class KeyCheckClient {
         detected = payload.detected();
         protectedCount = payload.protectedCount();
 
-        if (active && (earlyLoadingActive || payload.state() == KeyCheckStatusPayload.ANNOUNCEMENT))
+        if (active && (earlyLoadingActive || payload.state() == AirportSecuritySystemStatusPayload.ANNOUNCEMENT))
             blockingScreenRequested = true;
 
         if (!active) {
@@ -131,9 +131,9 @@ public final class KeyCheckClient {
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) return;
-        if (minecraft.screen instanceof KeyCheckLoadingScreen) return;
+        if (minecraft.screen instanceof AirportSecuritySystemLoadingScreen) return;
 
-        minecraft.setScreen(new KeyCheckLoadingScreen());
+        minecraft.setScreen(new AirportSecuritySystemLoadingScreen());
     }
 
     public static void render(GuiGraphics graphics) {
@@ -171,8 +171,8 @@ public final class KeyCheckClient {
         );
 
         String title = switch (state) {
-            case KeyCheckStatusPayload.COMPLETE -> "Check complete";
-            case KeyCheckStatusPayload.FAILED -> "Check could not be completed";
+            case AirportSecuritySystemStatusPayload.COMPLETE -> "Check complete";
+            case AirportSecuritySystemStatusPayload.FAILED -> "Check could not be completed";
             default -> "Verifying your client";
         };
 
@@ -232,7 +232,7 @@ public final class KeyCheckClient {
         active = true;
         earlyLoadingActive = true;
         blockingScreenRequested = true;
-        state = KeyCheckStatusPayload.START;
+        state = AirportSecuritySystemStatusPayload.START;
         completed = 0;
         total = 0;
         detected = 0;
@@ -244,13 +244,13 @@ public final class KeyCheckClient {
 
     private static void openBlockingScreen() {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft != null && !(minecraft.screen instanceof KeyCheckLoadingScreen))
-            minecraft.setScreen(new KeyCheckLoadingScreen());
+        if (minecraft != null && !(minecraft.screen instanceof AirportSecuritySystemLoadingScreen))
+            minecraft.setScreen(new AirportSecuritySystemLoadingScreen());
     }
 
     private static void closeBlockingScreen() {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft != null && minecraft.screen instanceof KeyCheckLoadingScreen)
+        if (minecraft != null && minecraft.screen instanceof AirportSecuritySystemLoadingScreen)
             minecraft.setScreen(null);
     }
 }
