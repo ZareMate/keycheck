@@ -8,21 +8,21 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
 @EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
-public final class KeyCheckClientGame {
-    private KeyCheckClientGame() {}
+public final class AirportSecuritySystemClientGame {
+    private AirportSecuritySystemClientGame() {}
 
     @SubscribeEvent
     public static void renderGui(RenderGuiEvent.Post event) {
-        KeyCheckClient.render(event.getGuiGraphics());
+        AirportSecuritySystemClient.render(event.getGuiGraphics());
     }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        KeyCheckClient.tick();
+        AirportSecuritySystemClient.tick();
     }
 
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        KeyCheckClient.reset();
+        AirportSecuritySystemClient.reset();
     }
 }
