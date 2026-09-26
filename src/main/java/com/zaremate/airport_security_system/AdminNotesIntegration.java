@@ -217,7 +217,8 @@ public final class AdminNotesIntegration {
         addSystemNoteMethod.invoke(null, playerUuid, formatted);
     }
 
-    private static List<Object> findClearedNotes(List<Object> notes) {
+    private static List<Object> findClearedNotes(List<Object> notes)
+            throws ReflectiveOperationException {
         List<Object> result = new ArrayList<>();
 
         for (Object note : notes) {
