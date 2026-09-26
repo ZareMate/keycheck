@@ -3,11 +3,11 @@ loaderVersion="[1,)"
 license="MIT"
 
 [[mods]]
-modId="keycheck"
+modId="airport_security"
 version="1.0.0"
-displayName="KeyCheck"
+displayName="Airport Security"
 authors="ZareMate"
-description='''Server-side key translation checker for NeoForge.'''
+description='''Server-side client verification for NeoForge.'''
 
 [[mixins]]
 config="keycheck.mixins.json"
