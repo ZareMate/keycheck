@@ -1,4 +1,4 @@
-package com.zaremate.airport_security;
+package com.zaremate.airport_security_system_system;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -55,16 +55,16 @@ public final class KeyCheckConfig {
             );
 
     public static final ModConfigSpec.ConfigValue<String> COMMAND_PERMISSION =
-            BUILDER.comment("LuckPerms permission required to use /airport_security.")
-                    .define("command_permission", "airport_security.command");
+            BUILDER.comment("LuckPerms permission required to use /airport_security_system.")
+                    .define("command_permission", "airport_security_system.command");
 
     public static final ModConfigSpec.ConfigValue<String> JOIN_BYPASS_PERMISSION =
             BUILDER.comment("LuckPerms permission that exempts a player from automatic join checks.")
-                    .define("join_bypass_permission", "airport_security.join.bypass");
+                    .define("join_bypass_permission", "airport_security_system.join.bypass");
 
     public static final ModConfigSpec.ConfigValue<String> BROADCAST_PERMISSION =
-            BUILDER.comment("LuckPerms permission that allows receiving Airport Security result broadcasts.")
-                    .define("broadcast_permission", "airport_security.alerts");
+            BUILDER.comment("LuckPerms permission that allows receiving Airport Security System result broadcasts.")
+                    .define("broadcast_permission", "airport_security_system.alerts");
 
     public static final ModConfigSpec.BooleanValue AUTO_CHECK_ON_JOIN =
             BUILDER.comment("Automatically check players after they join the server.")
