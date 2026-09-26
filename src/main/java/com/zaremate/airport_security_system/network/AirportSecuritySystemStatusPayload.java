@@ -13,7 +13,6 @@ public record AirportSecuritySystemStatusPayload(int state, int completed, int t
     public static final int PROGRESS = 1;
     public static final int COMPLETE = 2;
     public static final int FAILED = 3;
-    public static final int ANNOUNCEMENT = 4;
 
     public static final Type<AirportSecuritySystemStatusPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(AirportSecuritySystem.MOD_ID, "status"));
