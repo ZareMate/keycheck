@@ -1,4 +1,4 @@
-package com.zaremate.airport_security_system_system;
+package com.zaremate.airport_security_system;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
