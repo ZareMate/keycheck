@@ -1,4 +1,4 @@
-package com.zaremate.airport_security_system_system;
+package com.zaremate.airport_security_system;
 
 import com.mojang.logging.LogUtils;
 import java.net.URI;
