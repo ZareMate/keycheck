@@ -1,4 +1,4 @@
-package com.zaremate.keycheck.client;
+package com.zaremate.airport_security.client;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 
 public final class KeyCheckLoadingScreen extends Screen {
     public KeyCheckLoadingScreen() {
-        super(Component.literal("KeyCheck"));
+        super(Component.literal("Airport Security"));
     }
 
     @Override
