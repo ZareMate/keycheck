@@ -1,13 +1,13 @@
-package com.zaremate.airport_security.client;
+package com.zaremate.airport_security_system_system.client;
 
-import com.zaremate.airport_security.network.KeyCheckStatusPayload;
+import com.zaremate.airport_security_system_system.network.KeyCheckStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 
-@EventBusSubscriber(modid = "airport_security", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckClient {
     private static volatile boolean active;
     private static volatile boolean earlyLoadingActive;
@@ -164,7 +164,7 @@ public final class KeyCheckClient {
 
         graphics.drawCenteredString(
                 minecraft.font,
-                "Airport Security",
+                "Airport Security System",
                 width / 2,
                 top + 14,
                 0xFFFFFFFF
