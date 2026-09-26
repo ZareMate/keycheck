@@ -1,4 +1,4 @@
-package com.zaremate.airport_security;
+package com.zaremate.airport_security_system_system;
 
 import net.minecraft.network.chat.Component;
 
