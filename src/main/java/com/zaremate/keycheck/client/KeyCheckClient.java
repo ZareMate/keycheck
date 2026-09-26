@@ -1,6 +1,6 @@
-package com.zaremate.airport_security_system_system.client;
+package com.zaremate.airport_security_system.client;
 
-import com.zaremate.airport_security_system_system.network.KeyCheckStatusPayload;
+import com.zaremate.airport_security_system.network.KeyCheckStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
