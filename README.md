@@ -1,38 +1,38 @@
-# KeyCheck
+# Airport Security
 
 Server-side NeoForge 1.21.1 mod that probes client keybind/translation keys.
 
 ## LuckPerms
 
-KeyCheck uses LuckPerms for permission checks.
+Airport Security uses LuckPerms for permission checks.
 
 The default permissions are:
 
-- `keycheck.command` — allows a player to use `/keycheck <player>`.
-- `keycheck.join.bypass` — prevents that player from being automatically checked on join.
+- `airport_security.command` — allows a player to use `/airport_security <player>`.
+- `airport_security.join.bypass` — prevents that player from being automatically checked on join.
 
-Both permission nodes can be changed in `config/keycheck-common.toml`:
+Both permission nodes can be changed in `config/airport_security-common.toml`:
 
 ```toml
-command_permission = "keycheck.command"
-join_bypass_permission = "keycheck.join.bypass"
+command_permission = "airport_security.command"
+join_bypass_permission = "airport_security.join.bypass"
 ```
 
 Example LuckPerms setup:
 
 ```
-/lp group admin permission set keycheck.command true
-/lp group admin permission set keycheck.join.bypass true
+/lp group admin permission set airport_security.command true
+/lp group admin permission set airport_security.join.bypass true
 ```
 
-The server console can run `/keycheck` without a player permission check.
+The server console can run `/airport_security` without a player permission check.
 
 LuckPerms must be installed on the NeoForge server for player permission checks. The mod compiles against the LuckPerms 5.5 API.
 
 ## Manual check
 
 ```
-/keycheck <player>
+/airport_security <player>
 ```
 
 The result is returned to the command sender and sent to Discord when the webhook is enabled.
@@ -65,7 +65,7 @@ Automatic checks wait 2 seconds (40 ticks by default) after login before the cli
 
 The default per-batch response timeout is 120 ticks (6 seconds).
 
-Players with `keycheck.join.bypass` are skipped from automatic join checks.
+Players with `airport_security.join.bypass` are skipped from automatic join checks.
 
 ## Discord webhook
 
