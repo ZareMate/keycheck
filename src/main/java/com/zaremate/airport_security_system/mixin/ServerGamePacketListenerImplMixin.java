@@ -1,4 +1,4 @@
-package com.zaremate.airport_security.mixin;
+package com.zaremate.airport_security_system.mixin;
 
 import com.zaremate.airport_security_system.AirportSecuritySystemEvents;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
