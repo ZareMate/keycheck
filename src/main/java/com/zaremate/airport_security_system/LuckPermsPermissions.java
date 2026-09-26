@@ -22,7 +22,7 @@ public final class LuckPermsPermissions {
                     .checkPermission(permission)
                     .asBoolean();
         } catch (IllegalStateException e) {
-            KeyCheck.LOGGER.warn(
+            AirportSecuritySystem.LOGGER.warn(
                     "LuckPerms is not available; denying permission '{}' for {}.",
                     permission,
                     player.getGameProfile().getName()
