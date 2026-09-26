@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 
-@EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT)
 public final class AirportSecuritySystemClient {
     private static volatile boolean active;
     private static volatile int state;
