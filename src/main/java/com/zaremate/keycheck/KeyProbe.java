@@ -4,14 +4,14 @@ import net.minecraft.network.chat.Component;
 
 import java.util.Locale;
 
-public record KeyProbe(String key, Mode mode) {
+public record AirportSecuritySystemProbe(String key, Mode mode) {
     public enum Mode {
         METEOR,
         TRANSLATE,
         KEYBIND
     }
 
-    public static KeyProbe parse(String raw) {
+    public static AirportSecuritySystemProbe parse(String raw) {
         String value = raw.trim();
         int separator = value.indexOf(':');
 
@@ -20,22 +20,22 @@ public record KeyProbe(String key, Mode mode) {
             String key = value.substring(separator + 1).trim();
 
             try {
-                return new KeyProbe(key, Mode.valueOf(prefix));
+                return new AirportSecuritySystemProbe(key, Mode.valueOf(prefix));
             } catch (IllegalArgumentException ignored) {
                 // Keep backwards-compatible behavior for an unrecognized prefix.
             }
         }
 
         if (value.equalsIgnoreCase("key.meteor-client.open-gui"))
-            return new KeyProbe(value, Mode.METEOR);
+            return new AirportSecuritySystemProbe(value, Mode.METEOR);
 
         // Advanced XRay exposes these as translation keys, not keybind names.
         if (value.equalsIgnoreCase("xray.debug.init")
                 || value.equalsIgnoreCase("xray.overlay")) {
-            return new KeyProbe(value, Mode.TRANSLATE);
+            return new AirportSecuritySystemProbe(value, Mode.TRANSLATE);
         }
 
-        return new KeyProbe(value, Mode.KEYBIND);
+        return new AirportSecuritySystemProbe(value, Mode.KEYBIND);
     }
 
     public Component component() {
