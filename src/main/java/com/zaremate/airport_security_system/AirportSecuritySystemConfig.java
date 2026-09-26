@@ -17,13 +17,7 @@ public final class AirportSecuritySystemConfig {
                     "blacklisted_keys",
                     List.of(
                             "METEOR:key.meteor-client.open-gui",
-                            "KEYBIND:key.freecam.toggle",
                             "KEYBIND:xray.config.toggle",
-                            "KEYBIND:key.chestesp.toggle",
-                            "KEYBIND:key.killaura",
-                            "KEYBIND:key.autofish.open_gui",
-                            "KEYBIND:key.lumina.open_click_gui",
-                            "KEYBIND:key.autoswitch.toggle",
                             "TRANSLATE:bleachhack.module.killaura",
                             "TRANSLATE:emc.module.killaura.name",
                             "TRANSLATE:coffee.module.killaura.name",
@@ -48,7 +42,6 @@ public final class AirportSecuritySystemConfig {
                             "KEYBIND:key.lumina.open_click_gui",
                             "KEYBIND:key.chestesp.toggle",
                             "KEYBIND:key.autofish.open_gui",
-                            "KEYBIND:key.auto-clicker_.toggle"
                     ),
                     () -> "",
                     value -> value instanceof String s && !s.isBlank()
