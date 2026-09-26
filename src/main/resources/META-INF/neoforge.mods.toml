@@ -4,10 +4,17 @@ license="MIT"
 
 [[mods]]
 modId="airport_security_system"
-version="1.0.0"
+version="1.1.0"
 displayName="Airport Security System"
 authors="ZareMate"
 description='''Server-side client verification for NeoForge.'''
+
+[[dependencies.airport_security_system]]
+modId="admin_notes"
+type="optional"
+versionRange="[2.0.0,)"
+ordering="AFTER"
+side="SERVER"
 
 [[mixins]]
 config="airport_security_system.mixins.json"
