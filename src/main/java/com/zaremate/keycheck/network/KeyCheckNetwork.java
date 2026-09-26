@@ -1,13 +1,13 @@
-package com.zaremate.keycheck.network;
+package com.zaremate.airport_security.network;
 
-import com.zaremate.keycheck.KeyCheckConfig;
-import com.zaremate.keycheck.client.KeyCheckClient;
+import com.zaremate.airport_security.KeyCheckConfig;
+import com.zaremate.airport_security.client.KeyCheckClient;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
-@EventBusSubscriber(modid = "keycheck", bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "airport_security", bus = EventBusSubscriber.Bus.MOD)
 public final class KeyCheckNetwork {
     private KeyCheckNetwork() {}
 
