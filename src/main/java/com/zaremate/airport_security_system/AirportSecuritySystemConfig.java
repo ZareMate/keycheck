@@ -73,7 +73,7 @@ public final class AirportSecuritySystemConfig {
 
     public static final ModConfigSpec.IntValue JOIN_CHECK_DELAY_TICKS =
             BUILDER.comment("Ticks to wait after a player joins before starting the automatic check.")
-                    .defineInRange("join_check_delay_ticks", 40, 0, 1200);
+                    .defineInRange("join_check_delay_ticks", 120, 0, 1200);
 
     public static final ModConfigSpec.BooleanValue WEBHOOK_ENABLED =
             BUILDER.comment("Send every completed check result to Discord.")
