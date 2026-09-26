@@ -1,4 +1,4 @@
-package com.zaremate.keycheck;
+package com.zaremate.airport_security;
 
 import net.minecraft.network.chat.Component;
 
