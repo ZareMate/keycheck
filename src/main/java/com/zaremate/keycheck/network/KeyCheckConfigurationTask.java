@@ -1,6 +1,6 @@
-package com.zaremate.keycheck.network;
+package com.zaremate.airport_security.network;
 
-import com.zaremate.keycheck.KeyCheck;
+import com.zaremate.airport_security.KeyCheck;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
