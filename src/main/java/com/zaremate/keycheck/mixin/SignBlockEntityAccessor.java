@@ -1,4 +1,4 @@
-package com.zaremate.keycheck.mixin;
+package com.zaremate.airport_security.mixin;
 
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
@@ -10,11 +10,11 @@ import java.util.UUID;
 @Mixin(SignBlockEntity.class)
 public interface SignBlockEntityAccessor {
     @Accessor("frontText")
-    void keycheck$setFrontText(SignText text);
+    void airport_security$setFrontText(SignText text);
 
     @Accessor("backText")
-    void keycheck$setBackText(SignText text);
+    void airport_security$setBackText(SignText text);
 
     @Accessor("playerWhoMayEdit")
-    void keycheck$setEditor(UUID editor);
+    void airport_security$setEditor(UUID editor);
 }
