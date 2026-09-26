@@ -1,6 +1,6 @@
-package com.zaremate.keycheck.network;
+package com.zaremate.airport_security.network;
 
-import com.zaremate.keycheck.KeyCheck;
+import com.zaremate.airport_security.KeyCheck;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
