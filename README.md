@@ -1,38 +1,38 @@
-# Airport Security
+# Airport Security System
 
 Server-side NeoForge 1.21.1 mod that probes client keybind/translation keys.
 
 ## LuckPerms
 
-Airport Security uses LuckPerms for permission checks.
+Airport Security System uses LuckPerms for permission checks.
 
 The default permissions are:
 
-- `airport_security.command` — allows a player to use `/airport_security <player>`.
-- `airport_security.join.bypass` — prevents that player from being automatically checked on join.
+- `airport_security_system.command` — allows a player to use `/airport_security_system <player>`.
+- `airport_security_system.join.bypass` — prevents that player from being automatically checked on join.
 
-Both permission nodes can be changed in `config/airport_security-common.toml`:
+Both permission nodes can be changed in `config/airport_security_system-common.toml`:
 
 ```toml
-command_permission = "airport_security.command"
-join_bypass_permission = "airport_security.join.bypass"
+command_permission = "airport_security_system.command"
+join_bypass_permission = "airport_security_system.join.bypass"
 ```
 
 Example LuckPerms setup:
 
 ```
-/lp group admin permission set airport_security.command true
-/lp group admin permission set airport_security.join.bypass true
+/lp group admin permission set airport_security_system.command true
+/lp group admin permission set airport_security_system.join.bypass true
 ```
 
-The server console can run `/airport_security` without a player permission check.
+The server console can run `/airport_security_system` without a player permission check.
 
 LuckPerms must be installed on the NeoForge server for player permission checks. The mod compiles against the LuckPerms 5.5 API.
 
 ## Manual check
 
 ```
-/airport_security <player>
+/airport_security_system <player>
 ```
 
 The result is returned to the command sender and sent to Discord when the webhook is enabled.
@@ -61,11 +61,11 @@ only_first_join = false
 join_check_delay_ticks = 40
 ```
 
-Automatic checks wait 2 seconds (40 ticks by default) after login before the client probe starts. The delay can be changed in airport_security-common.toml.
+Automatic checks wait 2 seconds (40 ticks by default) after login before the client probe starts. The delay can be changed in airport_security_system-common.toml.
 
 The default per-batch response timeout is 120 ticks (6 seconds).
 
-Players with `airport_security.join.bypass` are skipped from automatic join checks.
+Players with `airport_security_system.join.bypass` are skipped from automatic join checks.
 
 ## Discord webhook
 
@@ -97,6 +97,6 @@ Detection is heuristic because a modified client can suppress or spoof client-si
 
 ## Client overlay
 
-The mod includes an optional client-side verification overlay. On NeoForge clients with the Airport Security mod installed, the server now starts a small configuration-phase handshake so the Airport Security panel appears during the loading/configuration sequence before the world is shown. If the server-side sign probe is still running after login, the client keeps a blocking Airport Security loading screen open until the check finishes and then returns to normal gameplay.
+The mod includes an optional client-side verification overlay. On NeoForge clients with the Airport Security System mod installed, the server now starts a small configuration-phase handshake so the Airport Security System panel appears during the loading/configuration sequence before the world is shown. If the server-side sign probe is still running after login, the client keeps a blocking Airport Security System loading screen open until the check finishes and then returns to normal gameplay.
 
-The detection logic remains server-side. The Airport Security mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
+The detection logic remains server-side. The Airport Security System mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
