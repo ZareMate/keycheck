@@ -1,7 +1,7 @@
-package com.zaremate.airport_security.network;
+package com.zaremate.airport_security_system.network;
 
-import com.zaremate.airport_security.KeyCheckConfig;
-import com.zaremate.airport_security.client.KeyCheckClient;
+import com.zaremate.airport_security_system.KeyCheckConfig;
+import com.zaremate.airport_security_system.client.KeyCheckClient;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
