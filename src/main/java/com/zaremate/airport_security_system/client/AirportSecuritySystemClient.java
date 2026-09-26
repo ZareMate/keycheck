@@ -10,8 +10,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 @EventBusSubscriber(modid = "airport_security_system", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class AirportSecuritySystemClient {
     private static volatile boolean active;
-    private static volatile boolean earlyLoadingActive;
-    private static volatile boolean blockingScreenRequested;
     private static volatile int state;
     private static volatile int completed;
     private static volatile int total;
@@ -27,22 +25,12 @@ public final class AirportSecuritySystemClient {
                 && payload.state() != AirportSecuritySystemStatusPayload.FAILED;
         state = payload.state();
 
-        if (payload.state() == AirportSecuritySystemStatusPayload.ANNOUNCEMENT) {
-            airportUntilNanos = System.nanoTime() + 2_000_000_000L;
-            blockingScreenRequested = true;
-            openBlockingScreen();
-        }
         completed = payload.completed();
         total = payload.total();
         detected = payload.detected();
         protectedCount = payload.protectedCount();
 
-        if (active && (earlyLoadingActive || payload.state() == AirportSecuritySystemStatusPayload.ANNOUNCEMENT))
-            blockingScreenRequested = true;
-
         if (!active) {
-            earlyLoadingActive = false;
-            blockingScreenRequested = false;
             hideAtNanos = System.nanoTime() + 800_000_000L;
             closeBlockingScreen();
         }
@@ -114,8 +102,6 @@ public final class AirportSecuritySystemClient {
 
     public static void reset() {
         active = false;
-        earlyLoadingActive = false;
-        blockingScreenRequested = false;
         state = 0;
         completed = 0;
         total = 0;
@@ -127,7 +113,7 @@ public final class AirportSecuritySystemClient {
     }
 
     public static void tick() {
-        if (!blockingScreenRequested || !active) return;
+        if (!active) return;
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) return;
@@ -230,8 +216,6 @@ public final class AirportSecuritySystemClient {
 
     public static void beginEarlyLoading() {
         active = true;
-        earlyLoadingActive = true;
-        blockingScreenRequested = true;
         state = AirportSecuritySystemStatusPayload.START;
         completed = 0;
         total = 0;
@@ -239,13 +223,6 @@ public final class AirportSecuritySystemClient {
         protectedCount = 0;
         hideAtNanos = 0;
         airportUntilNanos = System.nanoTime() + 2_000_000_000L;
-    }
-
-
-    private static void openBlockingScreen() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft != null && !(minecraft.screen instanceof AirportSecuritySystemLoadingScreen))
-            minecraft.setScreen(new AirportSecuritySystemLoadingScreen());
     }
 
     private static void closeBlockingScreen() {
