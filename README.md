@@ -27,6 +27,8 @@ Example LuckPerms setup:
 
 The server console can run `/airport_security_system` without a player permission check.
 
+The manual check command is available as both `/airport_security_system <player>` and the alias `/ass <player>`.
+
 LuckPerms must be installed on the NeoForge server for player permission checks. The mod compiles against the LuckPerms 5.5 API.
 
 ## Manual check
