@@ -1,104 +1,220 @@
 # Airport Security System
 
-Server-side NeoForge 1.21.1 mod that probes client keybind/translation keys.
+Server-side NeoForge mod for checking client keybind and translation-key resolution.
 
-## LuckPerms
+Airport Security System sends temporary client-only sign data containing configured probes, opens the sign editor, reads the client's resolved text, and evaluates the responses on the server. The probe does not place or modify a sign in the server world.
 
-Airport Security System uses LuckPerms for permission checks.
+## Requirements
 
-The default permissions are:
+- Minecraft 1.21.1
+- NeoForge 21.1.x
+- Java 21
+- LuckPerms on the server for player permission checks
 
-- `airport_security_system.command` — allows a player to use `/airport_security_system <player>`.
-- `airport_security_system.join.bypass` — prevents that player from being automatically checked on join.
+The Airport Security System client mod is optional. Without it, the server-side check still works; the client overlay/loading UI is only available when the mod is installed on the client.
 
-Both permission nodes can be changed in `config/airport_security_system-common.toml`:
+## Commands
 
-```toml
-command_permission = "airport_security_system.command"
-join_bypass_permission = "airport_security_system.join.bypass"
-```
-
-Example LuckPerms setup:
-
-```
-/lp group admin permission set airport_security_system.command true
-/lp group admin permission set airport_security_system.join.bypass true
-```
-
-The server console can run `/airport_security_system` without a player permission check.
-
-The manual check command is available as both `/airport_security_system <player>` and the alias `/ass <player>`.
-
-LuckPerms must be installed on the NeoForge server for player permission checks. The mod compiles against the LuckPerms 5.5 API.
-
-## Manual check
+Manual checks can be started with:
 
 ```
 /airport_security_system <player>
 ```
 
-The result is returned to the command sender and sent to Discord when the webhook is enabled.
+Short alias:
 
-## Probe types
+```
+/ass <player>
+```
 
-Each entry in `blacklisted_keys` can define its own type:
+The command requires the configured command permission unless the command source has permission level 3 or higher.
+
+## LuckPerms
+
+The default permissions are:
+
+| Permission | Purpose |
+| --- | --- |
+| `airport_security_system.command` | Allows use of `/airport_security_system <player>` and `/ass <player>`. |
+| `airport_security_system.join.bypass` | Exempts a player from automatic join checks. |
+| `airport_security_system.alerts` | Allows a player to receive detected/inconclusive result broadcasts. |
+
+These nodes can be changed in `config/airport_security_system-common.toml`:
+
+```toml
+command_permission = "airport_security_system.command"
+join_bypass_permission = "airport_security_system.join.bypass"
+broadcast_permission = "airport_security_system.alerts"
+```
+
+Example:
+
+```
+/lp group admin permission set airport_security_system.command true
+/lp group admin permission set airport_security_system.join.bypass true
+/lp group admin permission set airport_security_system.alerts true
+```
+
+The server console can run the command without a player permission check.
+
+## Probe configuration
+
+Probes are configured with `blacklisted_keys`:
 
 ```toml
 blacklisted_keys = [
     "METEOR:key.meteor-client.open-gui",
-    "KEYBIND:key.freecam.toggle",
-    "TRANSLATE:litematica.hotkey.name.openmainmenuscreen"
+    "KEYBIND:xray.config.toggle",
+    "TRANSLATE:bleachhack.module.killaura"
 ]
 ```
 
-Supported types are `KEYBIND`, `TRANSLATE`, and `METEOR`.
+Supported probe types:
 
-A bare key is accepted for backwards compatibility.
+- `KEYBIND` — resolves the entry as a Minecraft keybind component.
+- `TRANSLATE` — resolves the entry as a translation component.
+- `METEOR` — resolves the entry using the Meteor-specific translation/keybind probe behavior.
+
+A bare key without a type prefix is still accepted for backwards compatibility. The configuration parser also recognizes `xray.debug.init` and `xray.overlay` as translation probes when no explicit type is supplied.
+
+The default configuration contains probes for several known client/mod translation keys and keybinds. Edit `config/airport_security_system-common.toml` to add or remove entries.
 
 ## Automatic join checks
 
+Automatic checking is controlled by:
+
 ```toml
 auto_check_on_join = true
+join_check_chance_percent = 10
 only_first_join = false
 join_check_delay_ticks = 40
 ```
 
-Automatic checks wait 2 seconds (40 ticks by default) after login before the client probe starts. The delay can be changed in airport_security_system-common.toml.
+With the defaults:
 
-The default per-batch response timeout is 120 ticks (6 seconds).
+- Automatic checking is enabled.
+- Each eligible login has a 10% chance of being selected.
+- The check starts 40 ticks (2 seconds) after login.
+- `only_first_join = true` limits automatic checks to once per UUID while the server is running.
+- Players with `airport_security_system.join.bypass` are skipped.
 
-Players with `airport_security_system.join.bypass` are skipped from automatic join checks.
+The per-batch response timeout defaults to:
+
+```toml
+timeout_ticks = 120
+```
+
+That is 120 ticks (6 seconds).
+
+## Results
+
+A completed check can produce:
+
+- **DETECTED** — one or more configured probes resolved to an unexpected/blacklisted value.
+- **INCONCLUSIVE** — the client did not provide a usable response, timed out, or protected a probe from normal resolution.
+- **CLEAN** — no configured blacklisted probes were detected.
+
+Manual results are returned to the command sender. Detected and inconclusive results are also broadcast to players with operator permission level 3 or the configured `airport_security_system.alerts` permission.
+
+Clean results are not broadcast.
 
 ## Discord webhook
+
+Discord reporting is optional:
 
 ```toml
 webhook_enabled = true
 webhook_url = "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
 ```
 
-Automatic clean checks do not generate a Discord message. Detected and inconclusive automatic results are sent.
+Detected and inconclusive results are sent to Discord.
 
-Manual checks send their final result to the command sender. Manual clean checks also send their result to Discord.
+Automatic clean checks do not send a webhook message. Manual clean checks do send their result when the webhook is enabled.
+
+Keep the webhook URL private.
+
+## Client UI
+
+When the Airport Security System mod is installed on the client, it provides a verification overlay and blocking screen while a check is active.
+
+During the NeoForge configuration phase, the server can perform an optional client configuration handshake. The client then displays the Airport Security System state before the world is shown.
+
+During a server-side check, the client UI can display:
+
+- Airport Security verification status
+- Probe progress
+- Detected/protected counts
+- Completion or failure state
+
+The UI does not perform the detection itself. Detection and result evaluation remain server-side.
+
+## How the probe works
+
+For each batch, the server creates a detached sign block entity, fills its text with probe components, and sends the sign state/data only to the checking client.
+
+The server then:
+
+1. Opens the sign editor for the client.
+2. Immediately hides the temporary sign from that client's view.
+3. Intercepts the expected sign-update packet.
+4. Evaluates the returned text against the configured probe.
+5. Restores the original block state to the checking client's view.
+6. Continues with the next batch or finishes the check.
+
+The expected sign response is intercepted by the server mixin before normal sign handling.
 
 ## Enforcement
 
-The mod does not kick, ban, damage, teleport, modify inventories, or execute punitive commands.
+Airport Security System does not:
 
-The probe uses temporary client-side packets and intercepts the sign response before normal server sign handling. The server world is not modified by the probe.
+- kick players
+- ban players
+- damage players
+- teleport players
+- modify inventories
+- execute punitive commands
+- place or modify blocks in the server world
+
+The mod is a detection/reporting system. Detection is heuristic because a modified client can suppress or spoof client-side text resolution.
+
+## Configuration
+
+The main configuration file is:
+
+```
+config/airport_security_system-common.toml
+```
+
+Available settings include:
+
+```toml
+blacklisted_keys = [...]
+command_permission = "airport_security_system.command"
+join_bypass_permission = "airport_security_system.join.bypass"
+broadcast_permission = "airport_security_system.alerts"
+
+auto_check_on_join = true
+join_check_chance_percent = 10
+only_first_join = false
+join_check_delay_ticks = 40
+
+webhook_enabled = false
+webhook_url = ""
+
+timeout_ticks = 120
+log_clean_checks = true
+```
 
 ## Build
 
-Requires Java 21 and Gradle:
+Requires Java 21.
 
 ```bash
-gradle build
+gradle clean build
 ```
 
-Detection is heuristic because a modified client can suppress or spoof client-side resolution.
+The built mod JAR is generated under:
 
-
-## Client overlay
-
-The mod includes an optional client-side verification overlay. On NeoForge clients with the Airport Security System mod installed, the server now starts a small configuration-phase handshake so the Airport Security System panel appears during the loading/configuration sequence before the world is shown. If the server-side sign probe is still running after login, the client keeps a blocking Airport Security System loading screen open until the check finishes and then returns to normal gameplay.
-
-The detection logic remains server-side. The Airport Security System mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
+```
+build/libs/
+```
