@@ -110,13 +110,6 @@ public final class AirportSecuritySystemConfig {
                 .toList();
     }
 
-    public static List<AirportSecuritySystemProbe> probes() {
-        return blacklistedProbes();
-    }
-
-    public static List<String> blacklistedKeys() {
-        return blacklistedProbes().stream().map(AirportSecuritySystemProbe::key).toList();
-    }
 
     public static String webhookUrl() {
         return WEBHOOK_URL.get().trim();
