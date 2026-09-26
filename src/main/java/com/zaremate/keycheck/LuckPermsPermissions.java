@@ -1,4 +1,4 @@
-package com.zaremate.keycheck;
+package com.zaremate.airport_security;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
