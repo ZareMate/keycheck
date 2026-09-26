@@ -1,4 +1,4 @@
-package com.zaremate.airport_security;
+package com.zaremate.airport_security_system_system;
 
 import com.mojang.logging.LogUtils;
 import java.net.URI;
@@ -24,9 +24,9 @@ public final class DiscordWebhook {
                 + escapeMarkdown(details);
 
         String json = "{"
-                + "\"username\":\"Airport Security\","
+                + "\"username\":\"Airport Security System\","
                 + "\"embeds\":[{"
-                + "\"title\":\"Airport Security result\","
+                + "\"title\":\"Airport Security System result\","
                 + "\"description\":\"" + escapeJson(description) + "\","
                 + "\"color\":" + colorFor(status)
                 + "}]"
@@ -42,14 +42,14 @@ public final class DiscordWebhook {
             CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                     .thenAccept(response -> {
                         if (response.statusCode() < 200 || response.statusCode() >= 300)
-                            LOGGER.warn("[Airport Security] Discord webhook returned HTTP {}", response.statusCode());
+                            LOGGER.warn("[Airport Security System] Discord webhook returned HTTP {}", response.statusCode());
                     })
                     .exceptionally(error -> {
-                        LOGGER.warn("[Airport Security] Discord webhook failed: {}", error.getMessage());
+                        LOGGER.warn("[Airport Security System] Discord webhook failed: {}", error.getMessage());
                         return null;
                     });
         } catch (Exception e) {
-            LOGGER.warn("[Airport Security] Invalid Discord webhook URL: {}", e.getMessage());
+            LOGGER.warn("[Airport Security System] Invalid Discord webhook URL: {}", e.getMessage());
         }
     }
 
