@@ -1,4 +1,4 @@
-package com.zaremate.airport_security_system_system;
+package com.zaremate.airport_security_system;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.commands.Commands;
@@ -9,15 +9,15 @@ import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.neoforged.neoforge.network.PacketDistributor;
-import com.zaremate.airport_security_system_system.network.KeyCheckStatusPayload;
-import com.zaremate.airport_security_system_system.network.KeyCheckConfigStartPayload;
+import com.zaremate.airport_security_system.network.KeyCheckStatusPayload;
+import com.zaremate.airport_security_system.network.KeyCheckConfigStartPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.state.BlockState;
-import com.zaremate.airport_security_system_system.mixin.SignBlockEntityAccessor;
+import com.zaremate.airport_security_system.mixin.SignBlockEntityAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
