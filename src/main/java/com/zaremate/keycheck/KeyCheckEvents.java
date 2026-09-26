@@ -111,8 +111,7 @@ public final class KeyCheckEvents {
             ServerPlayer player = event.getServer().getPlayerList().getPlayer(uuid);
             if (player != null && player.isAlive() && !SESSIONS.containsKey(uuid)) {
                 startCheck(player, null);
-            } else if (player != null) {
-                }
+            }
         }
 
         for (CheckSession session : new ArrayList<>(SESSIONS.values())) {
@@ -458,8 +457,6 @@ public final class KeyCheckEvents {
     }
 
     private static int automaticJoinDelay(ServerPlayer player) {
-        if (player.connection.hasChannel(KeyCheckConfigStartPayload.TYPE))
-            return 1;
         return KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get();
     }
 
