@@ -164,7 +164,7 @@ public final class KeyCheckClient {
 
         graphics.drawCenteredString(
                 minecraft.font,
-                "Airport Security System System",
+                "Airport Security System",
                 width / 2,
                 top + 14,
                 0xFFFFFFFF
