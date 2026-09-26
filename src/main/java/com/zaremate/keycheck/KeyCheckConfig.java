@@ -4,7 +4,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 
-public final class KeyCheckConfig {
+public final class AirportSecuritySystemConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLISTED_KEYS =
@@ -100,22 +100,22 @@ public final class KeyCheckConfig {
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 
-    private KeyCheckConfig() {}
+    private AirportSecuritySystemConfig() {}
 
-    public static List<KeyProbe> blacklistedProbes() {
+    public static List<AirportSecuritySystemProbe> blacklistedProbes() {
         return BLACKLISTED_KEYS.get().stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .map(KeyProbe::parse)
+                .map(AirportSecuritySystemProbe::parse)
                 .toList();
     }
 
-    public static List<KeyProbe> probes() {
+    public static List<AirportSecuritySystemProbe> probes() {
         return blacklistedProbes();
     }
 
     public static List<String> blacklistedKeys() {
-        return blacklistedProbes().stream().map(KeyProbe::key).toList();
+        return blacklistedProbes().stream().map(AirportSecuritySystemProbe::key).toList();
     }
 
     public static String webhookUrl() {
