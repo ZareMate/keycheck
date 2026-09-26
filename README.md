@@ -118,6 +118,30 @@ Manual results are returned to the command sender. Detected and inconclusive res
 
 Clean results are not broadcast.
 
+
+## Admin Notes integration
+
+Airport Security System has optional support for the [Admin Notes](https://github.com/ZareMate/admin-notes) mod (version 2.0.0 or newer).
+
+When Admin Notes is installed, completed security checks automatically maintain system notes for each player:
+
+```
+x-ray detected (last: dd-mm-yyyy)
+esp detected (last: dd-mm-yyyy)
+```
+
+- A new detection category is added as a separate note instead of replacing other detection notes.
+- When the same detection happens again, its existing note is updated with the newest date.
+- When a player passes a clean check and has no notes, Airport Security System adds:
+  ```
+  cleared (last: dd-mm-yyyy)
+  ```
+- A `cleared` note is removed as soon as a detection is recorded.
+- Repeated clean checks refresh an existing `cleared` note instead of creating duplicates.
+- Existing manually authored Admin Notes are left unchanged.
+
+The integration is optional and uses the Admin Notes API without requiring the Admin Notes mod to be installed.
+
 ## Discord webhook
 
 Discord reporting is optional:
