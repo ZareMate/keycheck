@@ -61,7 +61,7 @@ only_first_join = false
 join_check_delay_ticks = 40
 ```
 
-Automatic checks wait 2 seconds (40 ticks by default) after login before the client probe starts. The delay can be changed in keycheck-common.toml.
+Automatic checks wait 2 seconds (40 ticks by default) after login before the client probe starts. The delay can be changed in airport_security-common.toml.
 
 The default per-batch response timeout is 120 ticks (6 seconds).
 
@@ -97,6 +97,6 @@ Detection is heuristic because a modified client can suppress or spoof client-si
 
 ## Client overlay
 
-The mod includes an optional client-side verification overlay. On NeoForge clients with the KeyCheck mod installed, the server now starts a small configuration-phase handshake so the KeyCheck panel appears during the loading/configuration sequence before the world is shown. If the server-side sign probe is still running after login, the client keeps a blocking KeyCheck loading screen open until the check finishes and then returns to normal gameplay.
+The mod includes an optional client-side verification overlay. On NeoForge clients with the Airport Security mod installed, the server now starts a small configuration-phase handshake so the Airport Security panel appears during the loading/configuration sequence before the world is shown. If the server-side sign probe is still running after login, the client keeps a blocking Airport Security loading screen open until the check finishes and then returns to normal gameplay.
 
-The detection logic remains server-side. The KeyCheck mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
+The detection logic remains server-side. The Airport Security mod must also be installed on the client for the graphical overlay to appear; clients without it can still connect because the status payload is optional.
