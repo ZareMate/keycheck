@@ -41,7 +41,7 @@ public final class AirportSecuritySystemConfig {
                             "KEYBIND:key.antiafk.toggle",
                             "KEYBIND:key.lumina.open_click_gui",
                             "KEYBIND:key.chestesp.toggle",
-                            "KEYBIND:key.autofish.open_gui",
+                            "KEYBIND:key.autofish.open_gui"
                     ),
                     () -> "",
                     value -> value instanceof String s && !s.isBlank()
