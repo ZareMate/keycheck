@@ -1,13 +1,13 @@
 package com.zaremate.airport_security_system.network;
 
-import com.zaremate.airport_security_system.KeyCheck;
+import com.zaremate.airport_security_system.AirportSecuritySystem;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record KeyCheckStatusPayload(int state, int completed, int total, int detected, int protectedCount)
+public record AirportSecuritySystemStatusPayload(int state, int completed, int total, int detected, int protectedCount)
         implements CustomPacketPayload {
     public static final int START = 0;
     public static final int PROGRESS = 1;
@@ -15,17 +15,17 @@ public record KeyCheckStatusPayload(int state, int completed, int total, int det
     public static final int FAILED = 3;
     public static final int ANNOUNCEMENT = 4;
 
-    public static final Type<KeyCheckStatusPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(KeyCheck.MOD_ID, "status"));
+    public static final Type<AirportSecuritySystemStatusPayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(AirportSecuritySystem.MOD_ID, "status"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, KeyCheckStatusPayload> STREAM_CODEC =
+    public static final StreamCodec<RegistryFriendlyByteBuf, AirportSecuritySystemStatusPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::state,
-                    ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::completed,
-                    ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::total,
-                    ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::detected,
-                    ByteBufCodecs.VAR_INT, KeyCheckStatusPayload::protectedCount,
-                    KeyCheckStatusPayload::new
+                    ByteBufCodecs.VAR_INT, AirportSecuritySystemStatusPayload::state,
+                    ByteBufCodecs.VAR_INT, AirportSecuritySystemStatusPayload::completed,
+                    ByteBufCodecs.VAR_INT, AirportSecuritySystemStatusPayload::total,
+                    ByteBufCodecs.VAR_INT, AirportSecuritySystemStatusPayload::detected,
+                    ByteBufCodecs.VAR_INT, AirportSecuritySystemStatusPayload::protectedCount,
+                    AirportSecuritySystemStatusPayload::new
             );
 
     @Override
