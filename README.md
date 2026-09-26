@@ -58,8 +58,12 @@ A bare key is accepted for backwards compatibility.
 ```toml
 auto_check_on_join = true
 only_first_join = false
-join_check_delay_ticks = 60
+join_check_delay_ticks = 40
 ```
+
+Automatic checks wait 2 seconds (40 ticks by default) after login before the client probe starts. The delay can be changed in keycheck-common.toml.
+
+The default per-batch response timeout is 120 ticks (6 seconds).
 
 Players with `keycheck.join.bypass` are skipped from automatic join checks.
 
