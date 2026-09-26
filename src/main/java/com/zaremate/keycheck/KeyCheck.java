@@ -1,4 +1,4 @@
-package com.zaremate.keycheck;
+package com.zaremate.airport_security;
 
 import com.mojang.logging.LogUtils;
 import net.neoforged.fml.ModContainer;
@@ -15,6 +15,6 @@ public final class KeyCheck {
     public KeyCheck(ModContainer container) {
         container.registerConfig(ModConfig.Type.COMMON, KeyCheckConfig.SPEC);
         NeoForge.EVENT_BUS.register(KeyCheckEvents.class);
-        LOGGER.info("KeyCheck loaded.");
+        LOGGER.info("Airport Security loaded.");
     }
 }
