@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.zaremate.airport_security.mixin",
+  "package": "com.zaremate.airport_security_system.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ServerGamePacketListenerImplMixin",
