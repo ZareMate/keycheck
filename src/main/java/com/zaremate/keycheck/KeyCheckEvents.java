@@ -9,8 +9,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.neoforged.neoforge.network.PacketDistributor;
-import com.zaremate.airport_security_system.network.KeyCheckStatusPayload;
-import com.zaremate.airport_security_system.network.KeyCheckConfigStartPayload;
+import com.zaremate.airport_security_system.network.AirportSecuritySystemStatusPayload;
+import com.zaremate.airport_security_system.network.AirportSecuritySystemConfigStartPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
@@ -28,7 +28,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class KeyCheckEvents {
+public final class AirportSecuritySystemEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int LINES_PER_BATCH = 3;
     private static final String CTRL_KEYBIND = "key.forward";
@@ -36,12 +36,12 @@ public final class KeyCheckEvents {
     private static final Map<UUID, Integer> PENDING_JOIN_CHECKS = new ConcurrentHashMap<>();
     private static final Set<UUID> FIRST_JOIN_CHECKED = ConcurrentHashMap.newKeySet();
 
-    private KeyCheckEvents() {}
+    private AirportSecuritySystemEvents() {}
 
     @SubscribeEvent
     public static void onCommands(RegisterCommandsEvent event) {
         var command = Commands.literal("airport_security_system")
-                .requires(source -> source.hasPermission(3) || LuckPermsPermissions.hasPermission(source, KeyCheckConfig.COMMAND_PERMISSION.get()))
+                .requires(source -> source.hasPermission(3) || LuckPermsPermissions.hasPermission(source, AirportSecuritySystemConfig.COMMAND_PERMISSION.get()))
                 .then(Commands.argument("player",
                         net.minecraft.commands.arguments.EntityArgument.player())
                         .executes(ctx -> {
@@ -53,7 +53,7 @@ public final class KeyCheckEvents {
         event.getDispatcher().register(command);
         event.getDispatcher().register(
                 Commands.literal("ass")
-                        .requires(source -> source.hasPermission(3) || LuckPermsPermissions.hasPermission(source, KeyCheckConfig.COMMAND_PERMISSION.get()))
+                        .requires(source -> source.hasPermission(3) || LuckPermsPermissions.hasPermission(source, AirportSecuritySystemConfig.COMMAND_PERMISSION.get()))
                         .then(Commands.argument("player",
                                 net.minecraft.commands.arguments.EntityArgument.player())
                                 .executes(ctx -> {
@@ -67,36 +67,36 @@ public final class KeyCheckEvents {
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!KeyCheckConfig.AUTO_CHECK_ON_JOIN.get()) return;
+        if (!AirportSecuritySystemConfig.AUTO_CHECK_ON_JOIN.get()) return;
         UUID uuid = player.getUUID();
 
-        if (LuckPermsPermissions.hasPermission(player, KeyCheckConfig.JOIN_BYPASS_PERMISSION.get())) {
+        if (LuckPermsPermissions.hasPermission(player, AirportSecuritySystemConfig.JOIN_BYPASS_PERMISSION.get())) {
             LOGGER.info("[Airport Security System] Skipping automatic join check for {} due to LuckPerms permission '{}'.",
-                    player.getGameProfile().getName(), KeyCheckConfig.JOIN_BYPASS_PERMISSION.get());
-            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+                    player.getGameProfile().getName(), AirportSecuritySystemConfig.JOIN_BYPASS_PERMISSION.get());
+            sendClientStatus(player, AirportSecuritySystemStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
 
-        int joinChance = KeyCheckConfig.JOIN_CHECK_CHANCE_PERCENT.get();
+        int joinChance = AirportSecuritySystemConfig.JOIN_CHECK_CHANCE_PERCENT.get();
         if (ThreadLocalRandom.current().nextInt(100) >= joinChance) {
             LOGGER.debug("[Airport Security System] {} was not selected for the automatic {}% join check.",
                     player.getGameProfile().getName(), joinChance);
-            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+            sendClientStatus(player, AirportSecuritySystemStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
 
-        if (KeyCheckConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) {
-            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+        if (AirportSecuritySystemConfig.ONLY_FIRST_JOIN.get() && !FIRST_JOIN_CHECKED.add(uuid)) {
+            sendClientStatus(player, AirportSecuritySystemStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
 
-        List<KeyProbe> joinProbes = KeyCheckConfig.blacklistedProbes();
+        List<AirportSecuritySystemProbe> joinProbes = AirportSecuritySystemConfig.blacklistedProbes();
         if (joinProbes.isEmpty()) {
-            sendClientStatus(player, KeyCheckStatusPayload.COMPLETE, 0, 0, 0, 0);
+            sendClientStatus(player, AirportSecuritySystemStatusPayload.COMPLETE, 0, 0, 0, 0);
             return;
         }
 
-        sendClientStatus(player, KeyCheckStatusPayload.START, 0, joinProbes.size(), 0, 0);
+        sendClientStatus(player, AirportSecuritySystemStatusPayload.START, 0, joinProbes.size(), 0, 0);
 
         PENDING_JOIN_CHECKS.put(uuid,
                 player.server.getTickCount() + automaticJoinDelay(player));
@@ -143,7 +143,7 @@ public final class KeyCheckEvents {
                             new ClientboundBlockUpdatePacket(
                                     session.pos, Blocks.AIR.defaultBlockState()));
                     session.awaiting = true;
-                    session.timeoutTick = tick + KeyCheckConfig.TIMEOUT_TICKS.get();
+                    session.timeoutTick = tick + AirportSecuritySystemConfig.TIMEOUT_TICKS.get();
                 }
             }
             if (session.awaiting && tick >= session.timeoutTick)
@@ -165,7 +165,7 @@ public final class KeyCheckEvents {
 
         session.awaiting = false;
 
-        List<KeyProbe> batch = session.probes.subList(
+        List<AirportSecuritySystemProbe> batch = session.probes.subList(
                 session.index,
                 Math.min(session.index + LINES_PER_BATCH, session.probes.size())
         );
@@ -191,7 +191,7 @@ public final class KeyCheckEvents {
 
         for (int i = 0; i < batch.size(); i++) {
             String response = rawLines[i].trim();
-            KeyProbe probe = batch.get(i);
+            AirportSecuritySystemProbe probe = batch.get(i);
 
             ProbeResult result = evaluate(probe, response, exploitPreventer);
 
@@ -225,7 +225,7 @@ public final class KeyCheckEvents {
             return 0;
         }
 
-        List<KeyProbe> probes = KeyCheckConfig.blacklistedProbes();
+        List<AirportSecuritySystemProbe> probes = AirportSecuritySystemConfig.blacklistedProbes();
         if (probes.isEmpty()) {
             if (commandSource != null) commandSource.sendFailure(Component.literal("No blacklisted keys are configured."));
             LOGGER.warn("[Airport Security System] No blacklisted keys are configured.");
@@ -240,10 +240,10 @@ public final class KeyCheckEvents {
 
         if (commandSource != null) {
             showAirportTitle(target);
-            sendClientStatus(session, KeyCheckStatusPayload.START);
+            sendClientStatus(session, AirportSecuritySystemStatusPayload.START);
             session.startTick = target.server.getTickCount() + 40;
         } else {
-            sendClientStatus(session, KeyCheckStatusPayload.START);
+            sendClientStatus(session, AirportSecuritySystemStatusPayload.START);
             sendBatch(session);
         }
         return 1;
@@ -282,7 +282,7 @@ public final class KeyCheckEvents {
 
         session.pos = pos;
         session.originalState = player.serverLevel().getBlockState(pos);
-        sendClientStatus(session, KeyCheckStatusPayload.PROGRESS);
+        sendClientStatus(session, AirportSecuritySystemStatusPayload.PROGRESS);
         session.originalBlockEntity = null;
 
         BlockState fakeSignState = Blocks.OAK_SIGN.defaultBlockState();
@@ -295,7 +295,7 @@ public final class KeyCheckEvents {
 
         SignText text = new SignText();
 
-        List<KeyProbe> batch = session.probes.subList(
+        List<AirportSecuritySystemProbe> batch = session.probes.subList(
                 session.index,
                 Math.min(session.index + LINES_PER_BATCH, session.probes.size())
         );
@@ -330,7 +330,7 @@ public final class KeyCheckEvents {
 
     private enum ProbeResult { NOT_DETECTED, DETECTED, PROTECTED }
 
-    private static ProbeResult evaluate(KeyProbe probe, String response, boolean exploitPreventer) {
+    private static ProbeResult evaluate(AirportSecuritySystemProbe probe, String response, boolean exploitPreventer) {
         if (response.isEmpty())
             return ProbeResult.NOT_DETECTED;
 
@@ -374,8 +374,8 @@ public final class KeyCheckEvents {
         restoreClientView(session);
         sendClientStatus(session,
                 "complete".equals(reason)
-                        ? KeyCheckStatusPayload.COMPLETE
-                        : KeyCheckStatusPayload.FAILED);
+                        ? AirportSecuritySystemStatusPayload.COMPLETE
+                        : AirportSecuritySystemStatusPayload.FAILED);
 
         String name = session.player.getGameProfile().getName();
 
@@ -410,7 +410,7 @@ public final class KeyCheckEvents {
                 sendCommandResult(session, "INCONCLUSIVE", details);
                 broadcastStaff(session, name + " — INCONCLUSIVE\n" + details);
             } else {
-                if (KeyCheckConfig.LOG_CLEAN_CHECKS.get())
+                if (AirportSecuritySystemConfig.LOG_CLEAN_CHECKS.get())
                     LOGGER.info("[Airport Security System] {}: no blacklisted keybinds detected.", name);
                 String details = "No configured blacklisted keybinds were resolved.";
                 sendCommandResult(session, "CLEAN", details);
@@ -460,7 +460,7 @@ public final class KeyCheckEvents {
         try {
             PacketDistributor.sendToPlayer(
                     player,
-                    new KeyCheckStatusPayload(state, completed, total, detected, protectedCount)
+                    new AirportSecuritySystemStatusPayload(state, completed, total, detected, protectedCount)
             );
         } catch (Throwable ignored) {
             // The client overlay is optional; detection must continue without it.
@@ -468,7 +468,7 @@ public final class KeyCheckEvents {
     }
 
     private static int automaticJoinDelay(ServerPlayer player) {
-        return KeyCheckConfig.JOIN_CHECK_DELAY_TICKS.get();
+        return AirportSecuritySystemConfig.JOIN_CHECK_DELAY_TICKS.get();
     }
 
     private static void sendCommandResult(CheckSession session, String status, String details) {
@@ -484,7 +484,7 @@ public final class KeyCheckEvents {
         Component component = Component.literal("[Airport Security System] " + message);
         for (ServerPlayer player : session.player.server.getPlayerList().getPlayers()) {
             if (player.hasPermissions(3)
-                    || LuckPermsPermissions.hasPermission(player, KeyCheckConfig.BROADCAST_PERMISSION.get())) {
+                    || LuckPermsPermissions.hasPermission(player, AirportSecuritySystemConfig.BROADCAST_PERMISSION.get())) {
                 player.sendSystemMessage(component);
             }
         }
@@ -516,7 +516,7 @@ public final class KeyCheckEvents {
     static final class CheckSession {
         final ServerPlayer player;
         final net.minecraft.commands.CommandSourceStack commandSource;
-        final List<KeyProbe> probes;
+        final List<AirportSecuritySystemProbe> probes;
         final Set<String> detected = new LinkedHashSet<>();
         final Set<String> protectedKeys = new LinkedHashSet<>();
 
@@ -530,7 +530,7 @@ public final class KeyCheckEvents {
         boolean awaiting;
         boolean finished;
 
-        CheckSession(ServerPlayer player, net.minecraft.commands.CommandSourceStack commandSource, List<KeyProbe> probes) {
+        CheckSession(ServerPlayer player, net.minecraft.commands.CommandSourceStack commandSource, List<AirportSecuritySystemProbe> probes) {
             this.player = player;
             this.commandSource = commandSource;
             this.probes = List.copyOf(probes);
