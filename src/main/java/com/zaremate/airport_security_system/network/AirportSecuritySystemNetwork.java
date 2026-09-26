@@ -7,7 +7,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
-@EventBusSubscriber(modid = "airport_security_system", bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = "airport_security_system")
 public final class AirportSecuritySystemNetwork {
     private AirportSecuritySystemNetwork() {}
 
